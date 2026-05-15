@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <h1 className="text-4xl font-semibold text-foreground">Snapcal</h1>
+      <h1 className="text-4xl font-semibold text-foreground">Snapcal - GU</h1>
     </div>
   );
 }
