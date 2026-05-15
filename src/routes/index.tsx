@@ -1,19 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CalendarImport } from "@/components/CalendarImport";
 
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
       { title: "Snapcal" },
-      { name: "description", content: "Snapcal web app" },
+      { name: "description", content: "Snapcal — organize your photos around your school schedule." },
     ],
   }),
 });
 
 function Index() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <h1 className="text-4xl font-semibold text-foreground">Snapcal - GU</h1>
+    <div className="min-h-screen bg-background">
+      <header className="border-b">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <h1 className="text-xl font-semibold">Snapcal</h1>
+        </div>
+      </header>
+      <main className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-6 py-16">
+        <div className="text-center space-y-3 max-w-2xl">
+          <h2 className="text-3xl font-semibold tracking-tight">Your schedule, your snapshots</h2>
+          <p className="text-muted-foreground">
+            Import your TimeEdit class schedule to automatically group photos by lesson and time.
+          </p>
+        </div>
+        <CalendarImport />
+      </main>
     </div>
   );
 }
