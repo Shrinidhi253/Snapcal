@@ -173,6 +173,39 @@ export class IcsParser {
     return { courseCode, courseName };
   }
 
+  /** Extract location with building/campus context from TimeEdit fields. */
+  private static extractLocation(fields: Partial<Record<string, string>>): string {
+    const explicitLoc = (fields.LOCATION ?? "").trim();
+
+    const roomRe = /(?:Lokalnamn|Lokal|Room|Location|Sal)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Lokaltyp|Map link|Hus|Campus|Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid|Aktivitet|Klasskod|Lokalnamn|Lokal|Room|Location|Sal)\s*[:.]|[\r\n]|$)/gi;
+    const fieldRe = (label: string) =>
+      new RegExp(
+        `${label}[:\\s]+(.+?)(?=\\s*[.,;]?\\s*(?:Lokaltyp|Map link|Hus|Campus|Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid|Aktivitet|Klasskod|Lokalnamn|Lokal|Room|Location|Sal)\\s*[:.]|[\\r\\n]|$)`,
+        "i",
+      );
+
+    for (const src of [fields.DESCRIPTION, fields.SUMMARY]) {
+      if (!src) continue;
+      const rooms = Array.from(src.matchAll(roomRe), (m) =>
+        m[1].trim().replace(/[.,;]\s*$/, ""),
+      ).filter(Boolean);
+      if (!rooms.length) continue;
+      const unique = Array.from(new Set(rooms));
+      const buildings = Array.from(
+        src.matchAll(/Hus[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Campus|Lokalnamn|Lokal|Room|Location|Sal|Kurskod|Course code|Kursnamn|Aktivitet|Klasskod)\s*[:.]|[\r\n]|$)/gi),
+        (m) => m[1].trim().replace(/[.,;]\s*$/, ""),
+      );
+      const campuses = Array.from(
+        src.matchAll(/Campus[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Lokalnamn|Lokal|Room|Location|Sal|Kurskod|Course code|Kursnamn|Aktivitet|Klasskod|Hus)\s*[:.]|[\r\n]|$)/gi),
+        (m) => m[1].trim().replace(/[.,;]\s*$/, ""),
+      );
+      const ctx = Array.from(new Set([...buildings, ...campuses])).filter(Boolean);
+      const roomStr = unique.join(", ");
+      return ctx.length ? `${roomStr} — ${ctx.join(", ")}` : roomStr;
+    }
+    return explicitLoc;
+  }
+
   private static buildEvent(
     fields: Partial<Record<string, string>>,
   ): IcsEvent | null {
@@ -194,13 +227,14 @@ export class IcsParser {
 
     const { courseCode, courseName } = IcsParser.extractCourseInfo(fields);
     const subject = courseCode ? `${courseCode} ${courseName}` : courseName;
+    const location = IcsParser.extractLocation(fields);
 
     return {
       uid: (fields.UID ?? `${dtStart}-${dtEnd}-${subject}`).trim(),
       subject,
       courseCode,
       courseName,
-      location: (fields.LOCATION ?? "").trim(),
+      location,
       startTime,
       endTime,
       date,
