@@ -1,6 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { CalendarImport } from "@/components/CalendarImport";
 import { CalendarList } from "@/components/CalendarList";
+import { deleteAllImages } from "@/lib/imageDelete";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -13,6 +29,27 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const queryClient = useQueryClient();
+  const [deletingAll, setDeletingAll] = useState(false);
+
+  const handleDeleteAll = async () => {
+    setDeletingAll(true);
+    try {
+      const { deleted } = await deleteAllImages();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["unmatched-images"] }),
+        queryClient.invalidateQueries({ queryKey: ["event-photo-counts"] }),
+        queryClient.invalidateQueries({ queryKey: ["events-week"] }),
+      ]);
+      if (deleted === 0) toast.info("No images to delete.");
+      else toast.success(`Deleted ${deleted} image${deleted === 1 ? "" : "s"}.`);
+    } catch {
+      toast.error("Failed to delete images.");
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -37,6 +74,42 @@ function Index() {
         </div>
         <CalendarImport />
         <CalendarList />
+
+        <div className="mt-4 w-full max-w-2xl rounded-2xl border border-destructive/20 bg-destructive/5 p-4 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">Delete all uploaded images</p>
+            <p className="text-xs text-muted-foreground">
+              Removes every photo from storage. Your calendars and events are kept — you can re-upload anytime.
+            </p>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                type="button"
+                disabled={deletingAll}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-sm transition hover:bg-destructive/90 disabled:opacity-60"
+              >
+                {deletingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete all images
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete all uploaded images?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently removes every uploaded photo from storage and the database.
+                  Your imported calendars and events are not affected — you can upload new images anytime.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAll}>
+                  Delete all
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </main>
     </div>
   );
