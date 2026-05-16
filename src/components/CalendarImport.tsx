@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CalendarPlus, Upload, CalendarDays, CheckCircle2, AlertCircle, FileText, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
