@@ -47,12 +47,12 @@ function CalendarPage() {
     queryFn: async (): Promise<EventRow[]> => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, subject, course_code, course_name, location, start_time, end_time, event_date")
+        .select("id, subject, course_code, course_name, location, start_time, end_time, event_date, note_title")
         .gte("start_time", rangeStart.toISOString())
         .lt("start_time", rangeEnd.toISOString())
         .order("start_time", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as EventRow[];
     },
   });
 
