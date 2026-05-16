@@ -245,9 +245,17 @@ function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: nu
         {formatTime(start)}–{formatTime(end)}
       </div>
       <div className="truncate font-medium">{title}</div>
-      <div className="mt-0.5 flex items-center gap-1 opacity-80">
-        <Camera className="h-3 w-3" />
-        <span>{pictureCount}</span>
+      <div className="mt-0.5 flex items-center gap-2 opacity-80">
+        <span className="flex items-center gap-1">
+          <Camera className="h-3 w-3" />
+          <span>{pictureCount}</span>
+        </span>
+        {event.note_title && (
+          <span className="flex min-w-0 items-center gap-1">
+            <StickyNote className="h-3 w-3 flex-none" />
+            <span className="truncate">{event.note_title}</span>
+          </span>
+        )}
       </div>
     </Link>
   );
