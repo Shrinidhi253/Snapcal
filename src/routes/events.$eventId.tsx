@@ -14,7 +14,7 @@ export const Route = createFileRoute("/events/$eventId")({
 });
 
 // Photos feature is not wired to a backend yet — empty by default.
-type LecturePhoto = { id: string; url: string; takenAt: string };
+type LecturePhoto = { id: string; filename: string; url: string; takenAt: string };
 
 function EventDetailPage() {
   const { eventId } = useParams({ from: "/events/$eventId" });
