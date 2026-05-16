@@ -230,12 +230,32 @@ function EventDetailPage() {
         />
         <div className="bg-[#F6F6F8] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-1">
           <div className="mx-auto max-w-2xl">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.heic,.heif,image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
             <button
-              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-base font-semibold text-white shadow-[var(--shadow-button)] transition active:scale-[0.99]"
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!!uploading}
+              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-base font-semibold text-white shadow-[var(--shadow-button)] transition active:scale-[0.99] disabled:opacity-70"
               style={{ background: "var(--gradient-primary)" }}
             >
-              <Upload className="h-5 w-5" />
-              {photos.length === 0 ? "Upload First Photo" : "Upload Images for Lecture"}
+              {uploading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Uploading {uploading.done}/{uploading.total}…
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5" />
+                  {photos.length === 0 ? "Upload First Photo" : "Upload Images for Lecture"}
+                </>
+              )}
             </button>
           </div>
         </div>
