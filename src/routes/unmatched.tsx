@@ -272,6 +272,12 @@ function UnmatchedPage() {
           </div>
         )}
       </main>
+
+      <EventAssignDialog
+        open={assignId !== null}
+        onClose={() => setAssignId(null)}
+        imageId={assignId ?? ""}
+      />
     </div>
   );
 }
