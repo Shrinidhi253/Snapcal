@@ -6,6 +6,13 @@ import { extractImageTakenAt } from "@/lib/exifExtractor";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
 import { cn } from "@/lib/utils";
 
+type UnmatchedReason =
+  | "No EXIF metadata"
+  | "Could not determine image timestamp"
+  | "No matched events found"
+  | "Multiple matched events"
+  | "Event matching failed";
+
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/heic", "image/heif"];
 const ACCEPT_ATTR = ".jpg,.jpeg,.png,.heic,.heif,image/*";
 
