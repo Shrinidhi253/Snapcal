@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ArrowLeft, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PhotoUpload } from "@/components/PhotoUpload";
 import {
   addDays,
   colorForSubject,
