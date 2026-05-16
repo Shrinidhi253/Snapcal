@@ -178,7 +178,7 @@ export class IcsParser {
     const loc = (fields.LOCATION ?? "").trim();
     if (loc) return loc;
 
-    const re = /(?:Lokal|Room|Location|Sal)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid)\s*[:.]|[\r\n]|$)/i;
+    const re = /(?:Lokalnamn|Lokal|Room|Location|Sal)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Lokaltyp|Map link|Hus|Campus|Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid|Aktivitet|Klasskod)\s*[:.]|[\r\n]|$)/i;
     for (const src of [fields.DESCRIPTION, fields.SUMMARY]) {
       if (!src) continue;
       const m = src.match(re);
