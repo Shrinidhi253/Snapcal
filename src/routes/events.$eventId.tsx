@@ -5,6 +5,7 @@ import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { parseDateFromFilename } from "@/lib/filenameDateParser";
 import { deleteImage } from "@/lib/imageDelete";
 import { formatTime } from "@/lib/weekCalendar";
 
