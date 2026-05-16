@@ -41,6 +41,7 @@ export function PhotoUpload() {
   const [selected, setSelected] = useState<Selected[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [dragOver, setDragOver] = useState(false);
+  const queryClient = useQueryClient();
 
   const isUploading = status.kind === "uploading";
 
