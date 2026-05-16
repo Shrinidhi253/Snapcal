@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarPlus } from "lucide-react";
+import { useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { supabase } from "@/integrations/supabase/client";
+import { EventAssignDialog } from "@/components/EventAssignDialog";
 
 export const Route = createFileRoute("/images/$imageId")({
   component: ImageDetailPage,
@@ -11,6 +13,7 @@ export const Route = createFileRoute("/images/$imageId")({
 
 function ImageDetailPage() {
   const { imageId } = useParams({ from: "/images/$imageId" });
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["image", imageId],
@@ -136,6 +139,16 @@ function ImageDetailPage() {
                 </span>
               </p>
             </div>
+
+            <div className="mt-5 flex justify-center">
+              <button
+                onClick={() => setAssignOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-4 py-2 transition"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                {data.event ? "Change event" : "Assign event"}
+              </button>
+            </div>
           </>
         ) : (
           !isLoading && (
@@ -145,6 +158,13 @@ function ImageDetailPage() {
           )
         )}
       </main>
+
+      <EventAssignDialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        imageId={imageId}
+        currentEventId={data?.event?.id ?? null}
+      />
     </div>
   );
 }
