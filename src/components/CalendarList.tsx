@@ -19,27 +19,58 @@ type CalendarRow = {
   name: string;
   event_count: number;
   created_at: string;
+  legacy?: false;
 };
+
+type LegacyCalendarRow = {
+  id: "legacy-untracked";
+  name: string;
+  event_count: number;
+  created_at: string;
+  legacy: true;
+};
+
+type CalendarListItem = CalendarRow | LegacyCalendarRow;
 
 export function CalendarList() {
   const queryClient = useQueryClient();
-  const [pending, setPending] = useState<CalendarRow | null>(null);
+  const [pending, setPending] = useState<CalendarListItem | null>(null);
 
   const { data: calendars, isLoading } = useQuery({
     queryKey: ["calendars"],
-    queryFn: async (): Promise<CalendarRow[]> => {
+    queryFn: async (): Promise<CalendarListItem[]> => {
       const { data, error } = await supabase
         .from("calendars")
         .select("id, name, event_count, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+
+      const { count: legacyCount, error: legacyError } = await supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .is("calendar_id", null);
+      if (legacyError) throw legacyError;
+
+      const rows: CalendarListItem[] = data ?? [];
+      if ((legacyCount ?? 0) > 0) {
+        rows.push({
+          id: "legacy-untracked",
+          name: "Previous imported calendar",
+          event_count: legacyCount ?? 0,
+          created_at: new Date().toISOString(),
+          legacy: true,
+        });
+      }
+
+      return rows;
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (cal: CalendarRow) => {
-      const { error } = await supabase.from("calendars").delete().eq("id", cal.id);
+    mutationFn: async (cal: CalendarListItem) => {
+      const { error } = cal.legacy
+        ? await supabase.from("events").delete().is("calendar_id", null)
+        : await supabase.from("calendars").delete().eq("id", cal.id);
       if (error) throw error;
       return cal;
     },
@@ -49,6 +80,7 @@ export function CalendarList() {
       );
       queryClient.invalidateQueries({ queryKey: ["calendars"] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["events-week"] });
     },
     onError: () => {
       toast.error("Failed to delete the calendar. Please try again.");
