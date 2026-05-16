@@ -1,10 +1,12 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarPlus } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Trash2, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { supabase } from "@/integrations/supabase/client";
 import { EventAssignDialog } from "@/components/EventAssignDialog";
+import { deleteImage } from "@/lib/imageDelete";
 
 export const Route = createFileRoute("/images/$imageId")({
   component: ImageDetailPage,
