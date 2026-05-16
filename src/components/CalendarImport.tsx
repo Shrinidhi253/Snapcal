@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CalendarPlus, Upload, CalendarDays, CheckCircle2, AlertCircle, FileText, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ function countIcsEvents(text: string): number {
 }
 
 export function CalendarImport() {
+  const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [content, setContent] = useState("");
@@ -118,6 +120,8 @@ export function CalendarImport() {
     const message = `${n} event${n === 1 ? "" : "s"} have been imported.`;
     setStatus({ kind: "success", message });
     toast.success(message);
+    queryClient.invalidateQueries({ queryKey: ["calendars"] });
+    queryClient.invalidateQueries({ queryKey: ["events"] });
     reset();
   };
 
