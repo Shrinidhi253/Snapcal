@@ -273,9 +273,9 @@ export function PhotoUpload() {
                   Uploading {status.done}/{status.total}…
                 </>
               ) : (
-                <>
+              <>
                   <Upload className="h-4 w-4 text-slate-800" />
-                  Upload Images
+                  Upload {selected.length} image{selected.length === 1 ? "" : "s"}
                 </>
               )}
             </button>
