@@ -99,13 +99,16 @@ export function PhotoUpload() {
           takenAt = null;
         }
 
+        const takenAtIso = takenAt ? takenAt.toISOString() : null;
         const { error: dbErr } = await supabase.from("images").insert({
           filename,
           original_filename: item.file.name,
-          taken_at: takenAt ? takenAt.toISOString() : null,
+          taken_at: takenAtIso,
           event_id: null,
         });
         if (dbErr) throw dbErr;
+
+        console.log("Image saved:", { filename, taken_at: takenAtIso });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
         failed++;
