@@ -112,6 +112,9 @@ export function PhotoUpload() {
         } catch {
           takenAt = null;
         }
+        if (!takenAt) {
+          takenAt = parseDateFromFilename(item.file.name);
+        }
 
         const takenAtIso = takenAt ? takenAt.toISOString() : null;
 
