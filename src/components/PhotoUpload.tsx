@@ -169,13 +169,7 @@ export function PhotoUpload() {
         {/* Upload trigger */}
         <button
           type="button"
-          onClick={() => {
-            if (selected.length > 0 && !isUploading) {
-              handleUpload();
-            } else {
-              inputRef.current?.click();
-            }
-          }}
+          onClick={() => inputRef.current?.click()}
           onDragOver={(e) => {
             e.preventDefault();
             setDragOver(true);
@@ -198,11 +192,6 @@ export function PhotoUpload() {
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               Uploading {status.kind === "uploading" ? `${status.done}/${status.total}` : ""}…
-            </>
-          ) : selected.length > 0 ? (
-            <>
-              <Upload className="h-5 w-5 shrink-0 text-slate-800" />
-              Upload {selected.length} image{selected.length === 1 ? "" : "s"}
             </>
           ) : (
             <>
