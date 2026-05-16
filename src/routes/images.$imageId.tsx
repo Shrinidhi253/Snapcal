@@ -1,10 +1,12 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarPlus } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Trash2, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { supabase } from "@/integrations/supabase/client";
 import { EventAssignDialog } from "@/components/EventAssignDialog";
+import { deleteImage } from "@/lib/imageDelete";
 
 export const Route = createFileRoute("/images/$imageId")({
   component: ImageDetailPage,
@@ -13,7 +15,9 @@ export const Route = createFileRoute("/images/$imageId")({
 
 function ImageDetailPage() {
   const { imageId } = useParams({ from: "/images/$imageId" });
+  const navigate = useNavigate();
   const [assignOpen, setAssignOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["image", imageId],
@@ -140,13 +144,33 @@ function ImageDetailPage() {
               </p>
             </div>
 
-            <div className="mt-5 flex justify-center">
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => setAssignOpen(true)}
                 className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-4 py-2 transition"
               >
                 <CalendarPlus className="h-4 w-4" />
                 {data.event ? "Change event" : "Assign event"}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!data?.img) return;
+                  if (!confirm("Delete this photo? This cannot be undone.")) return;
+                  setDeleting(true);
+                  try {
+                    await deleteImage(data.img.id, data.img.filename);
+                    toast.success("Photo deleted.");
+                    navigate({ to: "/calendar" });
+                  } catch {
+                    toast.error("Failed to delete photo.");
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 rounded-full bg-red-500/15 hover:bg-red-500/30 text-red-200 text-sm font-medium px-4 py-2 transition disabled:opacity-60"
+              >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete photo
               </button>
             </div>
           </>
