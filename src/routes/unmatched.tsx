@@ -91,15 +91,9 @@ function UnmatchedPage() {
   const handleDelete = async (id: string, filename: string) => {
     setDeletingId(id);
     try {
-      const { error: storageErr } = await supabase.storage
-        .from("lecture-photos")
-        .remove([filename]);
-      if (storageErr) console.error("Storage delete error:", storageErr);
-
-      const { error: dbErr } = await supabase.from("images").delete().eq("id", id);
-      if (dbErr) throw dbErr;
-
+      await deleteImage(id, filename);
       queryClient.invalidateQueries({ queryKey: ["unmatched-images"] });
+      queryClient.invalidateQueries({ queryKey: ["event-photo-counts"] });
       toast.success("Image deleted.");
     } catch (err) {
       toast.error("Failed to delete image.");
