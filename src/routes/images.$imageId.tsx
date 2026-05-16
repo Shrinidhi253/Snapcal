@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarPlus } from "lucide-react";
+import { useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { supabase } from "@/integrations/supabase/client";
+import { EventAssignDialog } from "@/components/EventAssignDialog";
 
 export const Route = createFileRoute("/images/$imageId")({
   component: ImageDetailPage,
