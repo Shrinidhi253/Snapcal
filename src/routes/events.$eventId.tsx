@@ -25,10 +25,12 @@ function EventDetailPage() {
   const handleFilesSelected = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const list = Array.from(files);
-    setUploading({ done: 0, total: list.length });
+    const total = list.length;
+    let done = 0;
     let failed = 0;
-    for (let i = 0; i < list.length; i++) {
-      const file = list[i];
+    setUploading({ done: 0, total });
+
+    const uploadOne = async (file: File) => {
       try {
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
         const filename = `${crypto.randomUUID()}.${ext}`;
@@ -51,9 +53,12 @@ function EventDetailPage() {
         console.error("Upload failed for", file.name, err);
         failed++;
       } finally {
-        setUploading({ done: i + 1, total: list.length });
+        done++;
+        setUploading({ done, total });
       }
-    }
+    };
+
+    await Promise.all(list.map(uploadOne));
     setUploading(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     const ok = list.length - failed;
@@ -88,7 +93,9 @@ function EventDetailPage() {
       return (data ?? []).map((img) => {
         const { data: pub } = supabase.storage
           .from("lecture-photos")
-          .getPublicUrl(img.filename);
+          .getPublicUrl(img.filename, {
+            transform: { width: 400, height: 400, resize: "cover", quality: 70 },
+          });
         return {
           id: img.id,
           url: pub.publicUrl,
@@ -207,6 +214,8 @@ function EventDetailPage() {
                   <img
                     src={p.url}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                   />
                   <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
