@@ -122,39 +122,46 @@ export class IcsParser {
     let courseCode = "";
     let courseName = "";
 
-    // 1️⃣  Try explicit markers in DESCRIPTION (TimeEdit Swedish / English)
-    //    "Kurskod: TDDD12" or "Course code: TDDD12"
-    const codeLabelRe = /(?:Kurskod|Course code)[:\s]+([A-Z]{1,6}\d{2,4}[A-Z]?)/i;
-    const descCodeMatch = description.match(codeLabelRe);
-    if (descCodeMatch) {
-      courseCode = descCodeMatch[1].toUpperCase();
-    }
+    // Labels appear in both SUMMARY and DESCRIPTION depending on TimeEdit export.
+    // Stop the captured value at the next known label or end of line.
+    const codeLabelRe =
+      /(?:Kurskod|Course code)[:\s]+([A-Z]{1,6}\d{2,4}[A-Z0-9_]*)/i;
+    const nameLabelRe =
+      /(?:Kursnamn|Course name)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Kurskod|Course code|Sign|Lokal|Room|Lärare|Teacher|Program|ID)\s*[:.]|[\r\n]|$)/i;
 
-    // 2️⃣  Try explicit course name markers in DESCRIPTION
-    //    "Kursnamn: Software Engineering" or "Course name: Software Engineering"
-    const nameLabelRe = /(?:Kursnamn|Course name)[:\s]+([^\r\n]+)/i;
-    const descNameMatch = description.match(nameLabelRe);
-    if (descNameMatch) {
-      courseName = descNameMatch[1].trim();
-    }
-
-    // 3️⃣  Fallback: look for a course code pattern at the start of SUMMARY
-    if (!courseCode) {
-      // Common Swedish university patterns: TDDD12, TATA31, 1DV501, TNM079
-      const summaryCodeRe = /^([A-Z]{1,6}\d{2,4}[A-Z]?|\d[A-Z]{1,5}\d{2,4})\b/i;
-      const summaryCodeMatch = summary.match(summaryCodeRe);
-      if (summaryCodeMatch) {
-        courseCode = summaryCodeMatch[1].toUpperCase();
+    for (const source of [summary, description]) {
+      if (!source) continue;
+      if (!courseCode) {
+        const m = source.match(codeLabelRe);
+        if (m) courseCode = m[1].toUpperCase();
       }
+      if (!courseName) {
+        const m = source.match(nameLabelRe);
+        if (m) courseName = m[1].trim().replace(/[.,;]\s*$/, "");
+      }
+      if (courseCode && courseName) break;
     }
 
-    // 4️⃣  Build course name from SUMMARY if we still don't have one
+    // Normalize course code: keep only the leading alpha+digit token (DAT495 from DAT495_50_VT26_62113)
+    if (courseCode) {
+      const trim = /^([A-Z]{1,6}\d{2,4}[A-Z]?)/.exec(courseCode);
+      if (trim) courseCode = trim[1];
+    }
+
+    // Fallback: course code at the start of SUMMARY (no label)
+    if (!courseCode) {
+      const summaryCodeRe = /^([A-Z]{1,6}\d{2,4}[A-Z]?|\d[A-Z]{1,5}\d{2,4})\b/i;
+      const m = summary.match(summaryCodeRe);
+      if (m) courseCode = m[1].toUpperCase();
+    }
+
+    // Fallback: derive course name from SUMMARY (strip leading code if any)
     if (!courseName) {
-      // Strip the leading course code if present so we don't duplicate it
-      courseName = summary.replace(new RegExp(`^${courseCode}\s*[\-:]?\s*`, "i"), "").trim();
+      courseName = summary
+        .replace(new RegExp(`^${courseCode}\\s*[-:]?\\s*`, "i"), "")
+        .trim();
     }
 
-    // 5️⃣  Final fallback: if everything failed, treat the whole summary as the course name
     if (!courseName) {
       courseName = summary || "(No title)";
     }
