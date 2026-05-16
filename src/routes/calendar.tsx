@@ -28,6 +28,7 @@ type EventRow = {
   start_time: string;
   end_time: string;
   event_date: string;
+  note_title: string | null;
 };
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
