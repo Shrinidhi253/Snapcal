@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          end_time: string
+          event_date: string
+          id: string
+          location: string | null
+          start_time: string
+          subject: string
+          uid: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          event_date: string
+          id?: string
+          location?: string | null
+          start_time: string
+          subject: string
+          uid: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          event_date?: string
+          id?: string
+          location?: string | null
+          start_time?: string
+          subject?: string
+          uid?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
