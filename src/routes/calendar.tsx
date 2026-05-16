@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ArrowLeft, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PhotoUpload } from "@/components/PhotoUpload";
 import {
   addDays,
   colorForSubject,
@@ -112,8 +113,10 @@ function CalendarPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-2 sm:px-4 py-4">
+      <main className="mx-auto max-w-6xl px-2 sm:px-4 py-4 space-y-5">
+        <PhotoUpload />
         <div className="rounded-2xl border bg-card overflow-x-auto">
+
           {/* Day header row */}
           <div className="grid min-w-[760px]" style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}>
             <div />
