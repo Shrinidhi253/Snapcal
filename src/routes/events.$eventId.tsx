@@ -222,23 +222,47 @@ function EventDetailPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {photos.map((p) => (
-                <Link
+                <div
                   key={p.id}
-                  to="/images/$imageId"
-                  params={{ imageId: p.id }}
-                  className="group relative aspect-square overflow-hidden rounded-2xl bg-white shadow-[0_4px_16px_-8px_oklch(0.18_0.03_280/0.18)] transition active:scale-[0.98]"
+                  className="group relative aspect-square overflow-hidden rounded-2xl bg-white shadow-[0_4px_16px_-8px_oklch(0.18_0.03_280/0.18)] transition"
                 >
-                  <img
-                    src={p.url}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                  />
-                  <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
-                    {p.takenAt}
-                  </span>
-                </Link>
+                  <Link
+                    to="/images/$imageId"
+                    params={{ imageId: p.id }}
+                    className="block h-full w-full active:scale-[0.98]"
+                  >
+                    <img
+                      src={p.url}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                    />
+                    <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
+                      {p.takenAt}
+                    </span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (deletingPhotoId) return;
+                      if (confirm("Delete this photo? This cannot be undone.")) {
+                        handleDeletePhoto(p.id, p.filename);
+                      }
+                    }}
+                    disabled={deletingPhotoId === p.id}
+                    aria-label="Delete photo"
+                    className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition hover:bg-destructive disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+                  >
+                    {deletingPhotoId === p.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           )}
