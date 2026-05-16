@@ -1,5 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
+type UnmatchedReason =
+  | "No EXIF metadata"
+  | "Could not determine image timestamp"
+  | "No matched events found"
+  | "Multiple matched events"
+  | "Event matching failed";
+
 /**
  * The `taken_at` column already stores the correct UTC instant
  * (exifr parses EXIF datetimes in the browser's local timezone, so the
@@ -10,26 +17,26 @@ function takenAtToQueryIso(takenAtRaw: string): string {
   return new Date(takenAtRaw).toISOString();
 }
 
-/**
- * Find the event whose [start_time, end_time] window contains `takenAtIso`.
- * Returns the event id or null if no match exists.
- */
-export async function findMatchingEventId(
+async function resolveMatch(
   takenAtIso: string,
-): Promise<string | null> {
+): Promise<{ eventId: string | null; reason: UnmatchedReason | null }> {
+  // Check for matching events
   const { data: events, error } = await supabase
     .from("events")
     .select("id,start_time,end_time")
     .lte("start_time", takenAtIso)
     .gte("end_time", takenAtIso)
-    .order("start_time", { ascending: true })
-    .limit(1);
+    .order("start_time", { ascending: true });
 
   if (error) {
     console.error("Event lookup failed:", error);
-    return null;
+    return { eventId: null, reason: "Event matching failed" };
   }
-  return events && events.length > 0 ? events[0].id : null;
+
+  const count = events?.length ?? 0;
+  if (count === 0) return { eventId: null, reason: "No matched events found" };
+  if (count > 1) return { eventId: null, reason: "Multiple matched events" };
+  return { eventId: events![0].id, reason: null };
 }
 
 export type AssignmentResult = {
@@ -46,7 +53,7 @@ export type AssignmentResult = {
 export async function assignUnmatchedImages(): Promise<AssignmentResult> {
   const { data: images, error } = await supabase
     .from("images")
-    .select("id,filename,taken_at")
+    .select("id,filename,taken_at,unmatched_reason")
     .is("event_id", null);
 
   if (error) {
@@ -61,6 +68,12 @@ export async function assignUnmatchedImages(): Promise<AssignmentResult> {
   for (const img of images ?? []) {
     if (!img.taken_at) {
       skippedNullTakenAt++;
+      if (!img.unmatched_reason) {
+        await supabase
+          .from("images")
+          .update({ unmatched_reason: "Could not determine image timestamp" })
+          .eq("id", img.id);
+      }
       console.log(
         `${img.filename} could not be matched because of null taken_at`,
       );
@@ -68,16 +81,21 @@ export async function assignUnmatchedImages(): Promise<AssignmentResult> {
     }
 
     const queryIso = takenAtToQueryIso(img.taken_at);
-    const eventId = await findMatchingEventId(queryIso);
+    const { eventId, reason } = await resolveMatch(queryIso);
 
     if (!eventId) {
+      await supabase
+        .from("images")
+        .update({ unmatched_reason: reason })
+        .eq("id", img.id)
+        .is("event_id", null);
       unmatched++;
       continue;
     }
 
     const { error: updErr } = await supabase
       .from("images")
-      .update({ event_id: eventId })
+      .update({ event_id: eventId, unmatched_reason: null })
       .eq("id", img.id)
       .is("event_id", null); // safety: never overwrite an existing assignment
 
