@@ -139,6 +139,16 @@ function ImageDetailPage() {
                 </span>
               </p>
             </div>
+
+            <div className="mt-5 flex justify-center">
+              <button
+                onClick={() => setAssignOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-4 py-2 transition"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                {data.event ? "Change event" : "Assign event"}
+              </button>
+            </div>
           </>
         ) : (
           !isLoading && (
@@ -148,6 +158,13 @@ function ImageDetailPage() {
           )
         )}
       </main>
+
+      <EventAssignDialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        imageId={imageId}
+        currentEventId={data?.event?.id ?? null}
+      />
     </div>
   );
 }
