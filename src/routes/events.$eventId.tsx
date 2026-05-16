@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, Clock, MapPin, Tag, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, Tag, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatTime } from "@/lib/weekCalendar";
 
@@ -64,7 +64,7 @@ function EventDetailPage() {
             {event.course_code && (
               <Row icon={<Tag className="h-4 w-4" />}>{event.course_code}</Row>
             )}
-            <Row icon={<ImageIcon className="h-4 w-4" />}>0 pictures uploaded</Row>
+            <Row icon={<Camera className="h-4 w-4" />}>0 pictures uploaded</Row>
           </div>
         )}
       </main>

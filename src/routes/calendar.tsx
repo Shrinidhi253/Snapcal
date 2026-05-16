@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   addDays,
@@ -218,7 +218,7 @@ function EventBlock({ event }: { event: EventRow }) {
       </div>
       <div className="truncate font-medium">{title}</div>
       <div className="mt-0.5 flex items-center gap-1 opacity-80">
-        <ImageIcon className="h-3 w-3" />
+        <Camera className="h-3 w-3" />
         <span>{pictureCount}</span>
       </div>
     </Link>
