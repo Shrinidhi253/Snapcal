@@ -210,7 +210,7 @@ function CalendarPage() {
   );
 }
 
-function EventBlock({ event }: { event: EventRow }) {
+function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: number }) {
   const start = new Date(event.start_time);
   const end = new Date(event.end_time);
   const startMin = start.getHours() * 60 + start.getMinutes();
@@ -221,9 +221,6 @@ function EventBlock({ event }: { event: EventRow }) {
   const colorKey = event.course_code || event.course_name || event.subject;
   const colorClasses = colorForSubject(colorKey);
   const title = event.course_name || event.subject;
-
-  // Picture count placeholder — wire to real table once available.
-  const pictureCount = 0;
 
   return (
     <Link
