@@ -89,7 +89,7 @@ export class IcsParser {
       if (key === "DTSTART" || key === "DTEND") {
         current[key] = value;
         current[`${key}_PARAMS`] = keyPart;
-      } else if (key === "SUMMARY" || key === "DESCRIPTION") {
+      } else if (key === "SUMMARY" || key === "DESCRIPTION" || key === "LOCATION") {
         current[key] = IcsParser.unescapeText(value);
       } else {
         current[key] = value;
