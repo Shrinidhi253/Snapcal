@@ -58,6 +58,7 @@ function EventDetailPage() {
 
         let takenAt: Date | null = null;
         try { takenAt = await extractImageTakenAt(file); } catch { takenAt = null; }
+        if (!takenAt) takenAt = parseDateFromFilename(file.name);
 
         const { error: dbErr } = await supabase.from("images").insert({
           filename,
