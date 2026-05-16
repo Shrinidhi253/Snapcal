@@ -21,6 +21,7 @@ export type Database = {
           event_count: number
           id: string
           name: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -28,6 +29,7 @@ export type Database = {
           event_count?: number
           id?: string
           name: string
+          user_id?: string
         }
         Update: {
           created_at?: string
@@ -35,6 +37,7 @@ export type Database = {
           event_count?: number
           id?: string
           name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -53,6 +56,7 @@ export type Database = {
           start_time: string
           subject: string
           uid: string
+          user_id: string
         }
         Insert: {
           calendar_id?: string | null
@@ -68,6 +72,7 @@ export type Database = {
           start_time: string
           subject: string
           uid: string
+          user_id?: string
         }
         Update: {
           calendar_id?: string | null
@@ -83,6 +88,7 @@ export type Database = {
           start_time?: string
           subject?: string
           uid?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -103,6 +109,7 @@ export type Database = {
           original_filename: string
           taken_at: string | null
           unmatched_reason: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -112,6 +119,7 @@ export type Database = {
           original_filename: string
           taken_at?: string | null
           unmatched_reason?: string | null
+          user_id?: string
         }
         Update: {
           created_at?: string
@@ -121,6 +129,7 @@ export type Database = {
           original_filename?: string
           taken_at?: string | null
           unmatched_reason?: string | null
+          user_id?: string
         }
         Relationships: [
           {
