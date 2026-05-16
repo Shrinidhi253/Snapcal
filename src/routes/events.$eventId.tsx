@@ -53,10 +53,18 @@ function EventDetailPage() {
     let failed = 0;
     setUploading({ done: 0, total });
 
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      toast.error("You must be signed in to upload.");
+      setUploading(null);
+      return;
+    }
+
     const uploadOne = async (file: File) => {
       try {
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-        const filename = `${crypto.randomUUID()}.${ext}`;
+        const filename = `${userId}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("lecture-photos")
           .upload(filename, file, { contentType: file.type || "image/jpeg", upsert: false });
@@ -114,21 +122,19 @@ function EventDetailPage() {
         .eq("event_id", eventId)
         .order("taken_at", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((img) => {
-        const { data: pub } = supabase.storage
-          .from("lecture-photos")
-          .getPublicUrl(img.filename, {
-            transform: { width: 400, height: 400, resize: "cover", quality: 70 },
-          });
-        return {
-          id: img.id,
-          filename: img.filename,
-          url: pub.publicUrl,
-          takenAt: img.taken_at
-            ? formatTime(new Date(img.taken_at))
-            : "",
-        };
-      });
+      return Promise.all(
+        (data ?? []).map(async (img) => {
+          const { data: signed } = await supabase.storage
+            .from("lecture-photos")
+            .createSignedUrl(img.filename, 3600);
+          return {
+            id: img.id,
+            filename: img.filename,
+            url: signed?.signedUrl ?? "",
+            takenAt: img.taken_at ? formatTime(new Date(img.taken_at)) : "",
+          };
+        }),
+      );
     },
   });
 
