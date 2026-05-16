@@ -17,6 +17,7 @@ function countIcsEvents(text: string): number {
 }
 
 export function CalendarImport() {
+  const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [content, setContent] = useState("");
