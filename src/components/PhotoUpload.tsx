@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { parseDateFromFilename } from "@/lib/filenameDateParser";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
 import { cn } from "@/lib/utils";
 
@@ -110,6 +111,9 @@ export function PhotoUpload() {
           takenAt = await extractImageTakenAt(item.file);
         } catch {
           takenAt = null;
+        }
+        if (!takenAt) {
+          takenAt = parseDateFromFilename(item.file.name);
         }
 
         const takenAtIso = takenAt ? takenAt.toISOString() : null;
