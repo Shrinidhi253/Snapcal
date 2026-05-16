@@ -103,27 +103,35 @@ function CalendarPage() {
             </Link>
             <h1 className="text-xl font-semibold">Calendar</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setWeekStart((w) => addDays(w, -7))}
-              className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"
-              aria-label="Previous week"
+          <div className="flex items-center gap-3">
+            <Link
+              to="/unmatched"
+              className="hidden sm:inline-flex text-sm text-muted-foreground hover:text-foreground transition"
             >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setWeekStart(startOfWeek(new Date()))}
-              className="rounded-full border px-3 h-9 text-sm hover:bg-accent"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => setWeekStart((w) => addDays(w, 7))}
-              className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"
-              aria-label="Next week"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+              Unmatched
+            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setWeekStart((w) => addDays(w, -7))}
+                className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"
+                aria-label="Previous week"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setWeekStart(startOfWeek(new Date()))}
+                className="rounded-full border px-3 h-9 text-sm hover:bg-accent"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setWeekStart((w) => addDays(w, 7))}
+                className="flex h-9 w-9 items-center justify-center rounded-full border hover:bg-accent"
+                aria-label="Next week"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
         <div className="mx-auto max-w-6xl px-4 pb-3 text-sm text-muted-foreground">

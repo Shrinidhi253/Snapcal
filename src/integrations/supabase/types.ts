@@ -96,6 +96,7 @@ export type Database = {
           id: string
           original_filename: string
           taken_at: string | null
+          unmatched_reason: string | null
         }
         Insert: {
           created_at?: string
@@ -104,6 +105,7 @@ export type Database = {
           id?: string
           original_filename: string
           taken_at?: string | null
+          unmatched_reason?: string | null
         }
         Update: {
           created_at?: string
@@ -112,6 +114,7 @@ export type Database = {
           id?: string
           original_filename?: string
           taken_at?: string | null
+          unmatched_reason?: string | null
         }
         Relationships: [
           {
