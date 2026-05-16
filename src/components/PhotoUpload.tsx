@@ -100,15 +100,33 @@ export function PhotoUpload() {
         }
 
         const takenAtIso = takenAt ? takenAt.toISOString() : null;
+
+        let matchedEventId: string | null = null;
+        if (takenAt) {
+          const { data: events, error: evErr } = await supabase
+            .from("events")
+            .select("id,start_time,end_time")
+            .lte("start_time", takenAt.toISOString())
+            .gte("end_time", takenAt.toISOString())
+            .limit(1);
+          if (evErr) {
+            console.error("Event lookup failed:", evErr);
+          } else if (events && events.length > 0) {
+            matchedEventId = events[0].id;
+          }
+        } else {
+          console.log(`${filename} could not be matched because of null taken_at`);
+        }
+
         const { error: dbErr } = await supabase.from("images").insert({
           filename,
           original_filename: item.file.name,
           taken_at: takenAtIso,
-          event_id: null,
+          event_id: matchedEventId,
         });
         if (dbErr) throw dbErr;
 
-        console.log("Image saved:", { filename, taken_at: takenAtIso });
+        console.log("Image saved:", { filename, taken_at: takenAtIso, event_id: matchedEventId });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
         failed++;
