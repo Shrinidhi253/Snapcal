@@ -70,6 +70,24 @@ export function CalendarImport() {
       return;
     }
 
+    // 1) Create a calendars row for this ics upload
+    const { data: cal, error: calErr } = await supabase
+      .from("calendars")
+      .insert({
+        name: file.name,
+        csv_content: content,
+        event_count: parsed.length,
+      })
+      .select("id")
+      .single();
+
+    if (calErr || !cal) {
+      setUploading(false);
+      setStatus({ kind: "error", message: "Upload failed. Please try again." });
+      toast.error("Upload failed. Please try again.");
+      return;
+    }
+
     const rows = parsed.map((e) => ({
       uid: e.uid,
       subject: e.subject,
@@ -79,6 +97,7 @@ export function CalendarImport() {
       event_date: `${e.date.getFullYear()}-${String(e.date.getMonth() + 1).padStart(2, "0")}-${String(e.date.getDate()).padStart(2, "0")}`,
       course_code: e.courseCode || null,
       course_name: e.courseName || null,
+      calendar_id: cal.id,
     }));
 
     const { error, count } = await supabase
@@ -88,6 +107,8 @@ export function CalendarImport() {
     setUploading(false);
 
     if (error) {
+      // Roll back the calendar row so we don't leave an empty record around
+      await supabase.from("calendars").delete().eq("id", cal.id);
       setStatus({ kind: "error", message: "Upload failed. Please try again." });
       toast.error("Upload failed. Please try again.");
       return;
