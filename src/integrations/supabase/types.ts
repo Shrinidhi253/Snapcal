@@ -40,6 +40,7 @@ export type Database = {
       }
       events: {
         Row: {
+          calendar_id: string | null
           course_code: string | null
           course_name: string | null
           created_at: string
@@ -52,6 +53,7 @@ export type Database = {
           uid: string
         }
         Insert: {
+          calendar_id?: string | null
           course_code?: string | null
           course_name?: string | null
           created_at?: string
@@ -64,6 +66,7 @@ export type Database = {
           uid: string
         }
         Update: {
+          calendar_id?: string | null
           course_code?: string | null
           course_name?: string | null
           created_at?: string
@@ -75,7 +78,15 @@ export type Database = {
           subject?: string
           uid?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
