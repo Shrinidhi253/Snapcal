@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ArrowLeft, Camera, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, Camera, NotebookPen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import {
@@ -245,18 +245,16 @@ function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: nu
         {formatTime(start)}–{formatTime(end)}
       </div>
       <div className="truncate font-medium">{title}</div>
-      <div className="mt-0.5 flex items-center gap-2 opacity-80">
-        <span className="flex items-center gap-1">
-          <Camera className="h-3 w-3" />
-          <span>{pictureCount}</span>
-        </span>
-        {event.note_title && (
-          <span className="flex min-w-0 items-center gap-1">
-            <StickyNote className="h-3 w-3 flex-none" />
-            <span className="truncate">{event.note_title}</span>
-          </span>
-        )}
+      <div className="mt-0.5 flex items-center gap-1 opacity-80">
+        <Camera className="h-3 w-3" />
+        <span>{pictureCount}</span>
       </div>
+      {event.note_title && (
+        <div className="mt-0.5 flex min-w-0 items-center gap-1 opacity-80">
+          <NotebookPen className="h-3 w-3 flex-none" />
+          <span className="truncate">{event.note_title}</span>
+        </div>
+      )}
     </Link>
   );
 }
