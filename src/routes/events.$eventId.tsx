@@ -93,7 +93,9 @@ function EventDetailPage() {
       return (data ?? []).map((img) => {
         const { data: pub } = supabase.storage
           .from("lecture-photos")
-          .getPublicUrl(img.filename);
+          .getPublicUrl(img.filename, {
+            transform: { width: 400, height: 400, resize: "cover", quality: 70 },
+          });
         return {
           id: img.id,
           url: pub.publicUrl,
