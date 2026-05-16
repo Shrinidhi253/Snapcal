@@ -197,6 +197,7 @@ export class IcsParser {
       subject,
       courseCode,
       courseName,
+      location: (fields.LOCATION ?? "").trim(),
       startTime,
       endTime,
       date,
