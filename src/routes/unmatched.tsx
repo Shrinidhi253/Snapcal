@@ -243,7 +243,7 @@ function UnmatchedPage() {
                       </button>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${reasonClass}`}
                       >
@@ -257,6 +257,13 @@ function UnmatchedPage() {
                           })}
                         </span>
                       )}
+                      <button
+                        onClick={() => setAssignId(img.id)}
+                        className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+                      >
+                        <CalendarPlus className="h-3 w-3" />
+                        Assign event
+                      </button>
                     </div>
                   </div>
                 </div>
