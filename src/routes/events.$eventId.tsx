@@ -130,7 +130,29 @@ function EventDetailPage() {
     },
   });
 
-  const title = event?.course_name || event?.subject || "Lecture";
+  const note = (event as { note?: string | null } | null | undefined)?.note ?? null;
+
+  useEffect(() => {
+    if (!editingNote) setNoteDraft(note ?? "");
+  }, [note, editingNote]);
+
+  const saveNote = async (value: string | null) => {
+    setSavingNote(true);
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update({ note: value && value.trim() ? value.trim() : null } as never)
+        .eq("id", eventId);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      setEditingNote(false);
+      toast.success(value && value.trim() ? "Note saved." : "Note cleared.");
+    } catch {
+      toast.error("Failed to save note.");
+    } finally {
+      setSavingNote(false);
+    }
+  };
 
   const start = event ? new Date(event.start_time) : null;
   const end = event ? new Date(event.end_time) : null;
