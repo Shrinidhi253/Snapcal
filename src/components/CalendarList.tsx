@@ -47,8 +47,9 @@ export function CalendarList() {
 
       const { count: legacyCount, error: legacyError } = await supabase
         .from("events")
-        .select("id", { count: "exact", head: true })
-        .is("calendar_id", null);
+        .select("id", { count: "exact" })
+        .is("calendar_id", null)
+        .limit(1);
       if (legacyError) throw legacyError;
 
       const rows: CalendarListItem[] = data ?? [];
