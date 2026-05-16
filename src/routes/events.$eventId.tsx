@@ -132,23 +132,34 @@ function EventDetailPage() {
     },
   });
 
-  const note = (event as { note?: string | null } | null | undefined)?.note ?? null;
+  const eventExtra = event as { note?: string | null; note_title?: string | null } | null | undefined;
+  const note = eventExtra?.note ?? null;
+  const noteTitle = eventExtra?.note_title ?? null;
 
   useEffect(() => {
-    if (!editingNote) setNoteDraft(note ?? "");
-  }, [note, editingNote]);
+    if (!editingNote) {
+      setNoteDraft(note ?? "");
+      setNoteTitleDraft(noteTitle ?? "");
+    }
+  }, [note, noteTitle, editingNote]);
 
-  const saveNote = async (value: string | null) => {
+  const saveNote = async (clear: boolean) => {
     setSavingNote(true);
     try {
+      const bodyTrim = noteDraft.trim();
+      const titleTrim = noteTitleDraft.trim();
+      const payload = clear || (!bodyTrim && !titleTrim)
+        ? { note: null, note_title: null }
+        : { note: bodyTrim || null, note_title: titleTrim || null };
       const { error } = await supabase
         .from("events")
-        .update({ note: value && value.trim() ? value.trim() : null } as never)
+        .update(payload as never)
         .eq("id", eventId);
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      await queryClient.invalidateQueries({ queryKey: ["events-week"] });
       setEditingNote(false);
-      toast.success(value && value.trim() ? "Note saved." : "Note cleared.");
+      toast.success(clear ? "Note cleared." : "Note saved.");
     } catch {
       toast.error("Failed to save note.");
     } finally {
