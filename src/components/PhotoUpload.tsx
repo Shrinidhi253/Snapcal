@@ -114,21 +114,29 @@ export function PhotoUpload() {
         const takenAtIso = takenAt ? takenAt.toISOString() : null;
 
         let matchedEventId: string | null = null;
-        if (takenAtIso) {
-          const { data: events, error: evErr } = await supabase
-            .from("events")
-            .select("id,start_time,end_time")
-            .lte("start_time", takenAtIso)
-            .gte("end_time", takenAtIso)
-            .order("start_time", { ascending: true })
-            .limit(1);
-          if (evErr) {
-            console.error("Event lookup failed:", evErr);
-          } else if (events && events.length > 0) {
-            matchedEventId = events[0].id;
-          }
-        } else {
+        let unmatchedReason: UnmatchedReason | null = null;
+
+        if (!takenAtIso) {
+          unmatchedReason = "Could not determine image timestamp";
           console.log(`${filename} could not be matched because of null taken_at`);
+        } else {
+          // First check for multiple matching events
+          const { data: countData, error: countErr } = await supabase
+            .from("events")
+            .select("id", { count: "exact" })
+            .lte("start_time", takenAtIso)
+            .gte("end_time", takenAtIso);
+
+          if (countErr) {
+            console.error("Event count lookup failed:", countErr);
+            unmatchedReason = "Event matching failed";
+          } else if ((countData?.length ?? 0) > 1) {
+            unmatchedReason = "Multiple matched events";
+          } else if ((countData?.length ?? 0) === 0) {
+            unmatchedReason = "No matched events found";
+          } else if (countData && countData.length === 1) {
+            matchedEventId = countData[0].id;
+          }
         }
 
         const { error: dbErr } = await supabase.from("images").insert({
@@ -136,13 +144,14 @@ export function PhotoUpload() {
           original_filename: item.file.name,
           taken_at: takenAtIso,
           event_id: matchedEventId,
+          unmatched_reason: unmatchedReason,
         });
         if (dbErr) throw dbErr;
 
         if (matchedEventId) matched++;
         else unmatchedThisBatch++;
 
-        console.log("Image saved:", { filename, taken_at: takenAtIso, event_id: matchedEventId });
+        console.log("Image saved:", { filename, taken_at: takenAtIso, event_id: matchedEventId, unmatched_reason: unmatchedReason });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
         failed++;
