@@ -1,12 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { CalendarImport } from "@/components/CalendarImport";
 import snapcalLogo from "@/assets/snapcal-logo.png";
 import { CalendarList } from "@/components/CalendarList";
 import { deleteAllImages } from "@/lib/imageDelete";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +32,13 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [deletingAll, setDeletingAll] = useState(false);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  };
 
   const handleDeleteAll = async () => {
     setDeletingAll(true);
@@ -63,6 +70,12 @@ function Index() {
             <Link to="/calendar" className="text-sm text-primary hover:underline">
               View calendar
             </Link>
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition"
+            >
+              <LogOut className="h-4 w-4" /> Sign out
+            </button>
           </div>
         </div>
       </header>

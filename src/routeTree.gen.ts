@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnmatchedRouteImport } from './routes/unmatched'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ImagesImageIdRouteImport } from './routes/images.$imageId'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
@@ -23,6 +24,11 @@ const UnmatchedRoute = UnmatchedRouteImport.update({
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +49,7 @@ const EventsEventIdRoute = EventsEventIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/unmatched': typeof UnmatchedRoute
   '/events/$eventId': typeof EventsEventIdRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/unmatched': typeof UnmatchedRoute
   '/events/$eventId': typeof EventsEventIdRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/calendar': typeof CalendarRoute
   '/unmatched': typeof UnmatchedRoute
   '/events/$eventId': typeof EventsEventIdRoute
@@ -67,15 +76,23 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/calendar'
     | '/unmatched'
     | '/events/$eventId'
     | '/images/$imageId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar' | '/unmatched' | '/events/$eventId' | '/images/$imageId'
+  to:
+    | '/'
+    | '/auth'
+    | '/calendar'
+    | '/unmatched'
+    | '/events/$eventId'
+    | '/images/$imageId'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/calendar'
     | '/unmatched'
     | '/events/$eventId'
@@ -84,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   CalendarRoute: typeof CalendarRoute
   UnmatchedRoute: typeof UnmatchedRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
@@ -104,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/calendar'
       preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -132,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   CalendarRoute: CalendarRoute,
   UnmatchedRoute: UnmatchedRoute,
   EventsEventIdRoute: EventsEventIdRoute,

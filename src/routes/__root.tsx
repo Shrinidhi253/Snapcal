@@ -4,9 +4,14 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -72,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "SnapCal" },
+      { name: "description", content: "Smart lecture-photos organisation web app that automatically connects uploaded lecture photos with calendar events." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "SnapCal" },
+      { property: "og:description", content: "Smart lecture-photos organisation web app that automatically connects uploaded lecture photos with calendar events." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "SnapCal" },
+      { name: "twitter:description", content: "Smart lecture-photos organisation web app that automatically connects uploaded lecture photos with calendar events." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6747ff11-3586-4830-866a-37b26c0c239c/id-preview-383255c3--098f6cc8-e53a-48f3-ba48-c36c19639504.lovable.app-1778953903885.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6747ff11-3586-4830-866a-37b26c0c239c/id-preview-383255c3--098f6cc8-e53a-48f3-ba48-c36c19639504.lovable.app-1778953903885.png" },
     ],
     links: [
       {
@@ -108,12 +117,43 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [ready, setReady] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setReady(true);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!session && location.pathname !== "/auth") {
+      navigate({ to: "/auth" });
+    }
+  }, [ready, session, location.pathname, navigate]);
+
+  if (!ready) return null;
+  if (!session && location.pathname !== "/auth") return null;
+  return <>{children}</>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthGate>
+        <Outlet />
+      </AuthGate>
     </QueryClientProvider>
   );
 }
