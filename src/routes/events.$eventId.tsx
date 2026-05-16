@@ -166,7 +166,7 @@ function EventDetailPage() {
                   <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
                     {p.takenAt}
                   </span>
-                </button>
+                </Link>
               ))}
             </div>
           )}
