@@ -174,6 +174,9 @@ export function PhotoUpload() {
       `Sweep of prior unmatched: ${sweep.assigned} assigned, ${sweep.unmatched} unmatched`,
     );
 
+    await queryClient.invalidateQueries({ queryKey: ["event-photo-counts"] });
+    await queryClient.invalidateQueries({ queryKey: ["events-week"] });
+
     const successCount = total - failed;
     const assignSummary = ` (${matched} matched to events, ${unmatchedThisBatch} unmatched)`;
     const message =
