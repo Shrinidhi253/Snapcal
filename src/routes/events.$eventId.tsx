@@ -30,8 +30,29 @@ function EventDetailPage() {
     },
   });
 
-  // Placeholder until photos backend exists.
-  const photos: LecturePhoto[] = [];
+  const { data: photos = [] } = useQuery<LecturePhoto[]>({
+    queryKey: ["event-photos", eventId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("images")
+        .select("id,filename,taken_at")
+        .eq("event_id", eventId)
+        .order("taken_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((img) => {
+        const { data: pub } = supabase.storage
+          .from("lecture-photos")
+          .getPublicUrl(img.filename);
+        return {
+          id: img.id,
+          url: pub.publicUrl,
+          takenAt: img.taken_at
+            ? formatTime(new Date(img.taken_at))
+            : "",
+        };
+      });
+    },
+  });
 
   const title = event?.course_name || event?.subject || "Lecture";
 

@@ -55,6 +55,25 @@ function CalendarPage() {
     },
   });
 
+  const eventIds = useMemo(() => events.map((e) => e.id), [events]);
+
+  const { data: photoCounts = {} } = useQuery({
+    queryKey: ["event-photo-counts", eventIds],
+    enabled: eventIds.length > 0,
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase
+        .from("images")
+        .select("event_id")
+        .in("event_id", eventIds);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const row of data ?? []) {
+        if (row.event_id) counts[row.event_id] = (counts[row.event_id] ?? 0) + 1;
+      }
+      return counts;
+    },
+  });
+
   const eventsByDay = useMemo(() => {
     const map = new Map<string, EventRow[]>();
     for (let i = 0; i < 7; i++) map.set(toDateKey(addDays(weekStart, i)), []);
@@ -169,7 +188,7 @@ function CalendarPage() {
                     <div key={h} className="border-b" style={{ height: HOUR_HEIGHT }} />
                   ))}
                   {dayEvents.map((ev) => (
-                    <EventBlock key={ev.id} event={ev} />
+                    <EventBlock key={ev.id} event={ev} pictureCount={photoCounts[ev.id] ?? 0} />
                   ))}
                 </div>
               );
@@ -191,7 +210,7 @@ function CalendarPage() {
   );
 }
 
-function EventBlock({ event }: { event: EventRow }) {
+function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: number }) {
   const start = new Date(event.start_time);
   const end = new Date(event.end_time);
   const startMin = start.getHours() * 60 + start.getMinutes();
@@ -202,9 +221,6 @@ function EventBlock({ event }: { event: EventRow }) {
   const colorKey = event.course_code || event.course_name || event.subject;
   const colorClasses = colorForSubject(colorKey);
   const title = event.course_name || event.subject;
-
-  // Picture count placeholder — wire to real table once available.
-  const pictureCount = 0;
 
   return (
     <Link

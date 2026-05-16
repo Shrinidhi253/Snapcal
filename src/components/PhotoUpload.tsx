@@ -3,6 +3,7 @@ import { Upload, X, Loader2, CheckCircle2, AlertCircle, ImagePlus } from "lucide
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { assignUnmatchedImages } from "@/lib/eventMatcher";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/heic", "image/heif"];
@@ -78,6 +79,8 @@ export function PhotoUpload() {
 
     let done = 0;
     let failed = 0;
+    let matched = 0;
+    let unmatchedThisBatch = 0;
 
     for (const item of selected) {
       try {
@@ -99,23 +102,12 @@ export function PhotoUpload() {
           takenAt = null;
         }
 
-        // EXIF datetimes have no timezone. exifr returns a Date whose UTC
-        // components equal the wall-clock time. Reinterpret those components
-        // as local time so the comparison against UTC start/end_time is correct.
-        const takenAtLocal = takenAt
-          ? new Date(
-              takenAt.getUTCFullYear(),
-              takenAt.getUTCMonth(),
-              takenAt.getUTCDate(),
-              takenAt.getUTCHours(),
-              takenAt.getUTCMinutes(),
-              takenAt.getUTCSeconds(),
-            )
-          : null;
-        const takenAtIso = takenAtLocal ? takenAtLocal.toISOString() : null;
+        // exifr parses EXIF datetime using the browser's local timezone,
+        // returning a Date that already represents the correct instant.
+        const takenAtIso = takenAt ? takenAt.toISOString() : null;
 
         let matchedEventId: string | null = null;
-        if (takenAtLocal && takenAtIso) {
+        if (takenAtIso) {
           const { data: events, error: evErr } = await supabase
             .from("events")
             .select("id,start_time,end_time")
@@ -140,6 +132,9 @@ export function PhotoUpload() {
         });
         if (dbErr) throw dbErr;
 
+        if (matchedEventId) matched++;
+        else unmatchedThisBatch++;
+
         console.log("Image saved:", { filename, taken_at: takenAtIso, event_id: matchedEventId });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
@@ -156,11 +151,18 @@ export function PhotoUpload() {
       return;
     }
 
+    // Sweep any historical unmatched images too (silent — only logged).
+    const sweep = await assignUnmatchedImages();
+    console.log(
+      `Sweep of prior unmatched: ${sweep.assigned} assigned, ${sweep.unmatched} unmatched`,
+    );
+
     const successCount = selected.length - failed;
+    const assignSummary = ` (${matched} matched to events, ${unmatchedThisBatch} unmatched)`;
     const message =
       failed === 0
-        ? "Images uploaded successfully."
-        : `${successCount} uploaded, ${failed} failed.`;
+        ? `Images uploaded successfully.${assignSummary}`
+        : `${successCount} uploaded, ${failed} failed.${assignSummary}`;
     setStatus({ kind: failed === 0 ? "success" : "error", message });
     if (failed === 0) toast.success(message);
     else toast.error(message);
