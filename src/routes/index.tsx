@@ -31,6 +31,7 @@ function Index() {
           </p>
         </div>
         <CalendarImport />
+        <CalendarList />
       </main>
     </div>
   );
