@@ -188,7 +188,7 @@ function CalendarPage() {
                     <div key={h} className="border-b" style={{ height: HOUR_HEIGHT }} />
                   ))}
                   {dayEvents.map((ev) => (
-                    <EventBlock key={ev.id} event={ev} />
+                    <EventBlock key={ev.id} event={ev} pictureCount={photoCounts[ev.id] ?? 0} />
                   ))}
                 </div>
               );
