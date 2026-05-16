@@ -79,6 +79,8 @@ export function PhotoUpload() {
 
     let done = 0;
     let failed = 0;
+    let matched = 0;
+    let unmatchedThisBatch = 0;
 
     for (const item of selected) {
       try {
@@ -102,7 +104,6 @@ export function PhotoUpload() {
 
         // exifr parses EXIF datetime using the browser's local timezone,
         // returning a Date that already represents the correct instant.
-        // toISOString() gives the matching UTC timestamp directly.
         const takenAtIso = takenAt ? takenAt.toISOString() : null;
 
         let matchedEventId: string | null = null;
@@ -131,6 +132,9 @@ export function PhotoUpload() {
         });
         if (dbErr) throw dbErr;
 
+        if (matchedEventId) matched++;
+        else unmatchedThisBatch++;
+
         console.log("Image saved:", { filename, taken_at: takenAtIso, event_id: matchedEventId });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
@@ -147,18 +151,14 @@ export function PhotoUpload() {
       return;
     }
 
-    // Sweep all unmatched images (including any from prior uploads) and try
-    // to assign them to a calendar event.
-    const { assigned, unmatched } = await assignUnmatchedImages();
+    // Sweep any historical unmatched images too (silent — only logged).
+    const sweep = await assignUnmatchedImages();
     console.log(
-      `Event assignment: ${assigned} assigned, ${unmatched} unmatched`,
+      `Sweep of prior unmatched: ${sweep.assigned} assigned, ${sweep.unmatched} unmatched`,
     );
 
     const successCount = selected.length - failed;
-    const assignSummary =
-      assigned > 0 || unmatched > 0
-        ? ` (${assigned} matched to events, ${unmatched} unmatched)`
-        : "";
+    const assignSummary = ` (${matched} matched to events, ${unmatchedThisBatch} unmatched)`;
     const message =
       failed === 0
         ? `Images uploaded successfully.${assignSummary}`
