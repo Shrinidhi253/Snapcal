@@ -3,6 +3,7 @@ import { Upload, X, Loader2, CheckCircle2, AlertCircle, ImagePlus } from "lucide
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { assignUnmatchedImages } from "@/lib/eventMatcher";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/heic", "image/heif"];
@@ -156,11 +157,22 @@ export function PhotoUpload() {
       return;
     }
 
+    // Sweep all unmatched images (including any from prior uploads) and try
+    // to assign them to a calendar event.
+    const { assigned, unmatched } = await assignUnmatchedImages();
+    console.log(
+      `Event assignment: ${assigned} assigned, ${unmatched} unmatched`,
+    );
+
     const successCount = selected.length - failed;
+    const assignSummary =
+      assigned > 0 || unmatched > 0
+        ? ` (${assigned} matched to events, ${unmatched} unmatched)`
+        : "";
     const message =
       failed === 0
-        ? "Images uploaded successfully."
-        : `${successCount} uploaded, ${failed} failed.`;
+        ? `Images uploaded successfully.${assignSummary}`
+        : `${successCount} uploaded, ${failed} failed.${assignSummary}`;
     setStatus({ kind: failed === 0 ? "success" : "error", message });
     if (failed === 0) toast.success(message);
     else toast.error(message);
