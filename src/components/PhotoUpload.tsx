@@ -3,6 +3,7 @@ import { Upload, X, Loader2, CheckCircle2, AlertCircle, ImagePlus } from "lucide
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { assignUnmatchedImages } from "@/lib/eventMatcher";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/heic", "image/heif"];
