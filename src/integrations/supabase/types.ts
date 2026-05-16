@@ -88,6 +88,41 @@ export type Database = {
           },
         ]
       }
+      images: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          filename: string
+          id: string
+          original_filename: string
+          taken_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          filename: string
+          id?: string
+          original_filename: string
+          taken_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          filename?: string
+          id?: string
+          original_filename?: string
+          taken_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "images_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
