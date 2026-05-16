@@ -120,6 +120,8 @@ export function CalendarImport() {
     const message = `${n} event${n === 1 ? "" : "s"} have been imported.`;
     setStatus({ kind: "success", message });
     toast.success(message);
+    queryClient.invalidateQueries({ queryKey: ["calendars"] });
+    queryClient.invalidateQueries({ queryKey: ["events"] });
     reset();
   };
 
