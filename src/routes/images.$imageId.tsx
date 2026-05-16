@@ -15,7 +15,9 @@ export const Route = createFileRoute("/images/$imageId")({
 
 function ImageDetailPage() {
   const { imageId } = useParams({ from: "/images/$imageId" });
+  const navigate = useNavigate();
   const [assignOpen, setAssignOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["image", imageId],
