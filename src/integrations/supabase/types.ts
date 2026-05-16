@@ -40,6 +40,8 @@ export type Database = {
       }
       events: {
         Row: {
+          course_code: string | null
+          course_name: string | null
           created_at: string
           end_time: string
           event_date: string
@@ -50,6 +52,8 @@ export type Database = {
           uid: string
         }
         Insert: {
+          course_code?: string | null
+          course_name?: string | null
           created_at?: string
           end_time: string
           event_date: string
@@ -60,6 +64,8 @@ export type Database = {
           uid: string
         }
         Update: {
+          course_code?: string | null
+          course_name?: string | null
           created_at?: string
           end_time?: string
           event_date?: string
