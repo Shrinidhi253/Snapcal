@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CalendarImport } from "@/components/CalendarImport";
+import snapcalLogo from "@/assets/snapcal-logo.png";
 import { CalendarList } from "@/components/CalendarList";
 import { deleteAllImages } from "@/lib/imageDelete";
 import {
@@ -54,7 +55,7 @@ function Index() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-semibold">Snapcal</h1>
+          <img src={snapcalLogo} alt="SnapCal" className="h-10 w-auto" />
           <div className="flex items-center gap-4">
             <Link to="/unmatched" className="text-sm text-muted-foreground hover:text-foreground transition">
               Unmatched
