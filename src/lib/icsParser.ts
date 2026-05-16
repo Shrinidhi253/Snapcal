@@ -15,6 +15,8 @@ export interface IcsEvent {
   courseCode: string;
   /** Extracted course name. */
   courseName: string;
+  /** Location / room (from LOCATION field), empty string if not present. */
+  location: string;
   /** Full start Date object (date + time). */
   startTime: Date;
   /** Full end Date object (date + time). */
@@ -87,7 +89,7 @@ export class IcsParser {
       if (key === "DTSTART" || key === "DTEND") {
         current[key] = value;
         current[`${key}_PARAMS`] = keyPart;
-      } else if (key === "SUMMARY" || key === "DESCRIPTION") {
+      } else if (key === "SUMMARY" || key === "DESCRIPTION" || key === "LOCATION") {
         current[key] = IcsParser.unescapeText(value);
       } else {
         current[key] = value;
@@ -195,6 +197,7 @@ export class IcsParser {
       subject,
       courseCode,
       courseName,
+      location: (fields.LOCATION ?? "").trim(),
       startTime,
       endTime,
       date,
