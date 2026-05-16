@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { parseDateFromFilename } from "@/lib/filenameDateParser";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
 import { cn } from "@/lib/utils";
 
