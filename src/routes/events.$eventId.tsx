@@ -25,6 +25,9 @@ function EventDetailPage() {
   const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
   const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const [editingNote, setEditingNote] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
   const handleDeletePhoto = async (id: string, filename: string) => {
     setDeletingPhotoId(id);
