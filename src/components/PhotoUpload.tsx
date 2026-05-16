@@ -100,23 +100,13 @@ export function PhotoUpload() {
           takenAt = null;
         }
 
-        // EXIF datetimes have no timezone. exifr returns a Date whose UTC
-        // components equal the wall-clock time. Reinterpret those components
-        // as local time so the comparison against UTC start/end_time is correct.
-        const takenAtLocal = takenAt
-          ? new Date(
-              takenAt.getUTCFullYear(),
-              takenAt.getUTCMonth(),
-              takenAt.getUTCDate(),
-              takenAt.getUTCHours(),
-              takenAt.getUTCMinutes(),
-              takenAt.getUTCSeconds(),
-            )
-          : null;
-        const takenAtIso = takenAtLocal ? takenAtLocal.toISOString() : null;
+        // exifr parses EXIF datetime using the browser's local timezone,
+        // returning a Date that already represents the correct instant.
+        // toISOString() gives the matching UTC timestamp directly.
+        const takenAtIso = takenAt ? takenAt.toISOString() : null;
 
         let matchedEventId: string | null = null;
-        if (takenAtLocal && takenAtIso) {
+        if (takenAtIso) {
           const { data: events, error: evErr } = await supabase
             .from("events")
             .select("id,start_time,end_time")
