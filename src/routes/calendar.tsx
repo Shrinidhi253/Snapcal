@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ArrowLeft, Camera } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, Camera, StickyNote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import {
@@ -28,6 +28,7 @@ type EventRow = {
   start_time: string;
   end_time: string;
   event_date: string;
+  note_title: string | null;
 };
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -46,12 +47,12 @@ function CalendarPage() {
     queryFn: async (): Promise<EventRow[]> => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, subject, course_code, course_name, location, start_time, end_time, event_date")
+        .select("id, subject, course_code, course_name, location, start_time, end_time, event_date, note_title")
         .gte("start_time", rangeStart.toISOString())
         .lt("start_time", rangeEnd.toISOString())
         .order("start_time", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as EventRow[];
     },
   });
 
@@ -244,9 +245,17 @@ function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: nu
         {formatTime(start)}–{formatTime(end)}
       </div>
       <div className="truncate font-medium">{title}</div>
-      <div className="mt-0.5 flex items-center gap-1 opacity-80">
-        <Camera className="h-3 w-3" />
-        <span>{pictureCount}</span>
+      <div className="mt-0.5 flex items-center gap-2 opacity-80">
+        <span className="flex items-center gap-1">
+          <Camera className="h-3 w-3" />
+          <span>{pictureCount}</span>
+        </span>
+        {event.note_title && (
+          <span className="flex min-w-0 items-center gap-1">
+            <StickyNote className="h-3 w-3 flex-none" />
+            <span className="truncate">{event.note_title}</span>
+          </span>
+        )}
       </div>
     </Link>
   );

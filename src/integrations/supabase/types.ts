@@ -49,6 +49,7 @@ export type Database = {
           id: string
           location: string | null
           note: string | null
+          note_title: string | null
           start_time: string
           subject: string
           uid: string
@@ -63,6 +64,7 @@ export type Database = {
           id?: string
           location?: string | null
           note?: string | null
+          note_title?: string | null
           start_time: string
           subject: string
           uid: string
@@ -77,6 +79,7 @@ export type Database = {
           id?: string
           location?: string | null
           note?: string | null
+          note_title?: string | null
           start_time?: string
           subject?: string
           uid?: string

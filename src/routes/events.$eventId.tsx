@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, Loader2, Trash2, NotebookPen, Pencil, Check } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
@@ -27,6 +28,7 @@ function EventDetailPage() {
   const queryClient = useQueryClient();
   const [editingNote, setEditingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
+  const [noteTitleDraft, setNoteTitleDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
   const handleDeletePhoto = async (id: string, filename: string) => {
@@ -130,23 +132,34 @@ function EventDetailPage() {
     },
   });
 
-  const note = (event as { note?: string | null } | null | undefined)?.note ?? null;
+  const eventExtra = event as { note?: string | null; note_title?: string | null } | null | undefined;
+  const note = eventExtra?.note ?? null;
+  const noteTitle = eventExtra?.note_title ?? null;
 
   useEffect(() => {
-    if (!editingNote) setNoteDraft(note ?? "");
-  }, [note, editingNote]);
+    if (!editingNote) {
+      setNoteDraft(note ?? "");
+      setNoteTitleDraft(noteTitle ?? "");
+    }
+  }, [note, noteTitle, editingNote]);
 
-  const saveNote = async (value: string | null) => {
+  const saveNote = async (clear: boolean) => {
     setSavingNote(true);
     try {
+      const bodyTrim = noteDraft.trim();
+      const titleTrim = noteTitleDraft.trim();
+      const payload = clear || (!bodyTrim && !titleTrim)
+        ? { note: null, note_title: null }
+        : { note: bodyTrim || null, note_title: titleTrim || null };
       const { error } = await supabase
         .from("events")
-        .update({ note: value && value.trim() ? value.trim() : null } as never)
+        .update(payload as never)
         .eq("id", eventId);
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      await queryClient.invalidateQueries({ queryKey: ["events-week"] });
       setEditingNote(false);
-      toast.success(value && value.trim() ? "Note saved." : "Note cleared.");
+      toast.success(clear ? "Note cleared." : "Note saved.");
     } catch {
       toast.error("Failed to save note.");
     } finally {
@@ -251,31 +264,41 @@ function EventDetailPage() {
               {!editingNote && (
                 <button
                   type="button"
-                  onClick={() => { setNoteDraft(note ?? ""); setEditingNote(true); }}
+                  onClick={() => {
+                    setNoteDraft(note ?? "");
+                    setNoteTitleDraft(noteTitle ?? "");
+                    setEditingNote(true);
+                  }}
                   className="flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-primary hover:bg-[oklch(0.96_0.03_290)] transition"
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                  {note ? "Edit" : "Add"}
+                  {note || noteTitle ? "Edit" : "Add"}
                 </button>
               )}
             </div>
 
             {editingNote ? (
               <div className="mt-3 space-y-2">
+                <Input
+                  value={noteTitleDraft}
+                  onChange={(e) => setNoteTitleDraft(e.target.value)}
+                  placeholder="Title (e.g. Fourier transforms)"
+                  className="rounded-2xl"
+                  autoFocus
+                />
                 <Textarea
                   value={noteDraft}
                   onChange={(e) => setNoteDraft(e.target.value)}
-                  placeholder="e.g. Topic: Fourier transforms — covered convolution theorem."
+                  placeholder="e.g. Covered convolution theorem and applications."
                   rows={4}
                   className="resize-none rounded-2xl"
-                  autoFocus
                 />
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  {note && (
+                  {(note || noteTitle) && (
                     <button
                       type="button"
                       disabled={savingNote}
-                      onClick={() => saveNote(null)}
+                      onClick={() => saveNote(true)}
                       className="rounded-full px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition disabled:opacity-50"
                     >
                       Clear note
@@ -284,7 +307,11 @@ function EventDetailPage() {
                   <button
                     type="button"
                     disabled={savingNote}
-                    onClick={() => { setEditingNote(false); setNoteDraft(note ?? ""); }}
+                    onClick={() => {
+                      setEditingNote(false);
+                      setNoteDraft(note ?? "");
+                      setNoteTitleDraft(noteTitle ?? "");
+                    }}
                     className="rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition disabled:opacity-50"
                   >
                     Cancel
@@ -292,7 +319,7 @@ function EventDetailPage() {
                   <button
                     type="button"
                     disabled={savingNote}
-                    onClick={() => saveNote(noteDraft)}
+                    onClick={() => saveNote(false)}
                     className="flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-[var(--shadow-button)] transition disabled:opacity-70"
                     style={{ background: "var(--gradient-primary)" }}
                   >
@@ -301,8 +328,15 @@ function EventDetailPage() {
                   </button>
                 </div>
               </div>
-            ) : note ? (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{note}</p>
+            ) : note || noteTitle ? (
+              <div className="mt-3 space-y-1">
+                {noteTitle && (
+                  <p className="text-sm font-semibold text-foreground">{noteTitle}</p>
+                )}
+                {note && (
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{note}</p>
+                )}
+              </div>
             ) : null}
           </div>
         </section>
