@@ -173,16 +173,18 @@ export class IcsParser {
     return { courseCode, courseName };
   }
 
-  /** Extract location from LOCATION field, falling back to "Lokal:" / "Room:" / "Location:" in DESCRIPTION/SUMMARY. */
+  /** Extract location from LOCATION field, falling back to all TimeEdit room labels in DESCRIPTION/SUMMARY. */
   private static extractLocation(fields: Partial<Record<string, string>>): string {
     const loc = (fields.LOCATION ?? "").trim();
     if (loc) return loc;
 
-    const re = /(?:Lokalnamn|Lokal|Room|Location|Sal)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Lokaltyp|Map link|Hus|Campus|Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid|Aktivitet|Klasskod)\s*[:.]|[\r\n]|$)/i;
+    const re = /(?:Lokalnamn|Lokal|Room|Location|Sal)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Lokaltyp|Map link|Hus|Campus|Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid|Aktivitet|Klasskod|Lokalnamn|Lokal|Room|Location|Sal)\s*[:.]|[\r\n]|$)/gi;
     for (const src of [fields.DESCRIPTION, fields.SUMMARY]) {
       if (!src) continue;
-      const m = src.match(re);
-      if (m) return m[1].trim().replace(/[.,;]\s*$/, "");
+      const rooms = Array.from(src.matchAll(re), (m) =>
+        m[1].trim().replace(/[.,;]\s*$/, ""),
+      ).filter(Boolean);
+      if (rooms.length) return Array.from(new Set(rooms)).join(", ");
     }
     return "";
   }
