@@ -99,16 +99,48 @@ export function PhotoUpload() {
           takenAt = null;
         }
 
-        const takenAtIso = takenAt ? takenAt.toISOString() : null;
+        // EXIF datetimes have no timezone. exifr returns a Date whose UTC
+        // components equal the wall-clock time. Reinterpret those components
+        // as local time so the comparison against UTC start/end_time is correct.
+        const takenAtLocal = takenAt
+          ? new Date(
+              takenAt.getUTCFullYear(),
+              takenAt.getUTCMonth(),
+              takenAt.getUTCDate(),
+              takenAt.getUTCHours(),
+              takenAt.getUTCMinutes(),
+              takenAt.getUTCSeconds(),
+            )
+          : null;
+        const takenAtIso = takenAtLocal ? takenAtLocal.toISOString() : null;
+
+        let matchedEventId: string | null = null;
+        if (takenAtLocal && takenAtIso) {
+          const { data: events, error: evErr } = await supabase
+            .from("events")
+            .select("id,start_time,end_time")
+            .lte("start_time", takenAtIso)
+            .gte("end_time", takenAtIso)
+            .order("start_time", { ascending: true })
+            .limit(1);
+          if (evErr) {
+            console.error("Event lookup failed:", evErr);
+          } else if (events && events.length > 0) {
+            matchedEventId = events[0].id;
+          }
+        } else {
+          console.log(`${filename} could not be matched because of null taken_at`);
+        }
+
         const { error: dbErr } = await supabase.from("images").insert({
           filename,
           original_filename: item.file.name,
           taken_at: takenAtIso,
-          event_id: null,
+          event_id: matchedEventId,
         });
         if (dbErr) throw dbErr;
 
-        console.log("Image saved:", { filename, taken_at: takenAtIso });
+        console.log("Image saved:", { filename, taken_at: takenAtIso, event_id: matchedEventId });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
         failed++;
