@@ -194,13 +194,14 @@ export class IcsParser {
 
     const { courseCode, courseName } = IcsParser.extractCourseInfo(fields);
     const subject = courseCode ? `${courseCode} ${courseName}` : courseName;
+    const location = IcsParser.extractLocation(fields);
 
     return {
       uid: (fields.UID ?? `${dtStart}-${dtEnd}-${subject}`).trim(),
       subject,
       courseCode,
       courseName,
-      location: (fields.LOCATION ?? "").trim(),
+      location,
       startTime,
       endTime,
       date,
