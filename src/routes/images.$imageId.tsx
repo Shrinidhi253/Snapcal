@@ -72,13 +72,15 @@ function ImageDetailPage() {
         {data ? (
           <>
             <div className="flex w-full items-center justify-center">
-              <img
-                src={data.url}
-                alt={data.img.original_filename}
-                loading="eager"
-                decoding="async"
-                className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain"
-              />
+              <Zoom>
+                <img
+                  src={data.url}
+                  alt={data.img.original_filename}
+                  loading="eager"
+                  decoding="async"
+                  className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain"
+                />
+              </Zoom>
             </div>
 
             <div className="mx-auto mt-5 max-w-xl space-y-1 text-center text-xs text-white/70">
