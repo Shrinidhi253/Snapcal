@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
+import { deleteImage } from "@/lib/imageDelete";
 import { formatTime } from "@/lib/weekCalendar";
 
 export const Route = createFileRoute("/events/$eventId")({
