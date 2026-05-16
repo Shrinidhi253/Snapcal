@@ -198,12 +198,12 @@ export function PhotoUpload() {
             </>
           ) : selected.length > 0 ? (
             <>
-              <Upload className="h-5 w-5 text-slate-800 text-center" />
+              <Upload className="h-5 w-5 text-slate-800 text-center py-0 px-0 my-0 mx-0" />
               Upload {selected.length} image{selected.length === 1 ? "" : "s"}
             </>
           ) : (
             <>
-              <Upload className="h-5 w-5 text-slate-800 text-center" />
+              <Upload className="h-5 w-5 text-slate-800 text-center py-0 px-0 my-0 mx-0" />
               Select photos
             </>
           )}
