@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarImport } from "@/components/CalendarImport";
+import { CalendarList } from "@/components/CalendarList";
 
 export const Route = createFileRoute("/")({
   component: Index,
