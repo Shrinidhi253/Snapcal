@@ -173,6 +173,20 @@ export class IcsParser {
     return { courseCode, courseName };
   }
 
+  /** Extract location from LOCATION field, falling back to "Lokal:" / "Room:" / "Location:" in DESCRIPTION/SUMMARY. */
+  private static extractLocation(fields: Partial<Record<string, string>>): string {
+    const loc = (fields.LOCATION ?? "").trim();
+    if (loc) return loc;
+
+    const re = /(?:Lokal|Room|Location|Sal)[:\s]+(.+?)(?=\s*[.,;]?\s*(?:Kurskod|Course code|Kursnamn|Course name|Sign|Lärare|Teacher|Program|ID|Hjälpmedel|Aid)\s*[:.]|[\r\n]|$)/i;
+    for (const src of [fields.DESCRIPTION, fields.SUMMARY]) {
+      if (!src) continue;
+      const m = src.match(re);
+      if (m) return m[1].trim().replace(/[.,;]\s*$/, "");
+    }
+    return "";
+  }
+
   private static buildEvent(
     fields: Partial<Record<string, string>>,
   ): IcsEvent | null {
@@ -194,13 +208,14 @@ export class IcsParser {
 
     const { courseCode, courseName } = IcsParser.extractCourseInfo(fields);
     const subject = courseCode ? `${courseCode} ${courseName}` : courseName;
+    const location = IcsParser.extractLocation(fields);
 
     return {
       uid: (fields.UID ?? `${dtStart}-${dtEnd}-${subject}`).trim(),
       subject,
       courseCode,
       courseName,
-      location: (fields.LOCATION ?? "").trim(),
+      location,
       startTime,
       endTime,
       date,
