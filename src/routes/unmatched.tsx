@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Camera, ImageOff, RefreshCw, CalendarDays, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, ImageOff, RefreshCw, CalendarDays, Trash2, Loader2, CalendarPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
+import { EventAssignDialog } from "@/components/EventAssignDialog";
 
 export const Route = createFileRoute("/unmatched")({
   component: UnmatchedPage,
@@ -54,6 +55,7 @@ function UnmatchedPage() {
   const queryClient = useQueryClient();
   const [retrying, setRetrying] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [assignId, setAssignId] = useState<string | null>(null);
 
   const { data: images = [], isLoading } = useQuery<UnmatchedImage[]>({
     queryKey: ["unmatched-images"],
@@ -241,7 +243,7 @@ function UnmatchedPage() {
                       </button>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${reasonClass}`}
                       >
@@ -255,6 +257,13 @@ function UnmatchedPage() {
                           })}
                         </span>
                       )}
+                      <button
+                        onClick={() => setAssignId(img.id)}
+                        className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+                      >
+                        <CalendarPlus className="h-3 w-3" />
+                        Assign event
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -263,6 +272,12 @@ function UnmatchedPage() {
           </div>
         )}
       </main>
+
+      <EventAssignDialog
+        open={assignId !== null}
+        onClose={() => setAssignId(null)}
+        imageId={assignId ?? ""}
+      />
     </div>
   );
 }
