@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Upload, X, Loader2, CheckCircle2, AlertCircle, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
@@ -40,6 +41,7 @@ export function PhotoUpload() {
   const [selected, setSelected] = useState<Selected[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [dragOver, setDragOver] = useState(false);
+  const queryClient = useQueryClient();
 
   const isUploading = status.kind === "uploading";
 
@@ -171,6 +173,9 @@ export function PhotoUpload() {
     console.log(
       `Sweep of prior unmatched: ${sweep.assigned} assigned, ${sweep.unmatched} unmatched`,
     );
+
+    await queryClient.invalidateQueries({ queryKey: ["event-photo-counts"] });
+    await queryClient.invalidateQueries({ queryKey: ["events-week"] });
 
     const successCount = total - failed;
     const assignSummary = ` (${matched} matched to events, ${unmatchedThisBatch} unmatched)`;
