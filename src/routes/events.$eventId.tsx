@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, Loader2, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, Loader2, Trash2, NotebookPen, Pencil, Check } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { extractImageTakenAt } from "@/lib/exifExtractor";
@@ -24,6 +25,9 @@ function EventDetailPage() {
   const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
   const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const [editingNote, setEditingNote] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
   const handleDeletePhoto = async (id: string, filename: string) => {
     setDeletingPhotoId(id);
@@ -126,6 +130,30 @@ function EventDetailPage() {
     },
   });
 
+  const note = (event as { note?: string | null } | null | undefined)?.note ?? null;
+
+  useEffect(() => {
+    if (!editingNote) setNoteDraft(note ?? "");
+  }, [note, editingNote]);
+
+  const saveNote = async (value: string | null) => {
+    setSavingNote(true);
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update({ note: value && value.trim() ? value.trim() : null } as never)
+        .eq("id", eventId);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      setEditingNote(false);
+      toast.success(value && value.trim() ? "Note saved." : "Note cleared.");
+    } catch {
+      toast.error("Failed to save note.");
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
   const title = event?.course_name || event?.subject || "Lecture";
 
   const start = event ? new Date(event.start_time) : null;
@@ -208,6 +236,75 @@ function EventDetailPage() {
               className="col-span-2"
             />
           </dl>
+        </section>
+
+        {/* Notes */}
+        <section className="mt-6">
+          <div className="rounded-3xl bg-white p-5 shadow-[0_4px_20px_-12px_oklch(0.18_0.03_280/0.15)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[oklch(0.96_0.03_290)] text-primary">
+                  <NotebookPen className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-semibold tracking-tight">Note</h3>
+              </div>
+              {!editingNote && (
+                <button
+                  type="button"
+                  onClick={() => { setNoteDraft(note ?? ""); setEditingNote(true); }}
+                  className="flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-primary hover:bg-[oklch(0.96_0.03_290)] transition"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  {note ? "Edit" : "Add"}
+                </button>
+              )}
+            </div>
+
+            {editingNote ? (
+              <div className="mt-3 space-y-2">
+                <Textarea
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  placeholder="e.g. Topic: Fourier transforms — covered convolution theorem."
+                  rows={4}
+                  className="resize-none rounded-2xl"
+                  autoFocus
+                />
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {note && (
+                    <button
+                      type="button"
+                      disabled={savingNote}
+                      onClick={() => saveNote(null)}
+                      className="rounded-full px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition disabled:opacity-50"
+                    >
+                      Clear note
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={savingNote}
+                    onClick={() => { setEditingNote(false); setNoteDraft(note ?? ""); }}
+                    className="rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={savingNote}
+                    onClick={() => saveNote(noteDraft)}
+                    className="flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-[var(--shadow-button)] transition disabled:opacity-70"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    {savingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : note ? (
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{note}</p>
+            ) : null}
+          </div>
         </section>
 
         {/* Photos */}
