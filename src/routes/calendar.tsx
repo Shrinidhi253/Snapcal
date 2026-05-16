@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ArrowLeft, Camera } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, Camera, NotebookPen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import {
@@ -28,6 +28,7 @@ type EventRow = {
   start_time: string;
   end_time: string;
   event_date: string;
+  note_title: string | null;
 };
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -46,12 +47,12 @@ function CalendarPage() {
     queryFn: async (): Promise<EventRow[]> => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, subject, course_code, course_name, location, start_time, end_time, event_date")
+        .select("id, subject, course_code, course_name, location, start_time, end_time, event_date, note_title")
         .gte("start_time", rangeStart.toISOString())
         .lt("start_time", rangeEnd.toISOString())
         .order("start_time", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as EventRow[];
     },
   });
 
@@ -235,19 +236,25 @@ function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: nu
       to="/events/$eventId"
       params={{ eventId: event.id }}
       className={cn(
-        "absolute left-1 right-1 rounded-md border px-1.5 py-1 text-[11px] leading-tight overflow-hidden shadow-sm hover:shadow-md transition-shadow",
+        "absolute left-1 right-1 rounded-md border px-1.5 py-1 text-[11px] leading-tight shadow-sm hover:shadow-md hover:z-10 transition-shadow",
         colorClasses,
       )}
-      style={{ top, height }}
+      style={{ top, minHeight: height }}
     >
       <div className="font-semibold">
         {formatTime(start)}–{formatTime(end)}
       </div>
-      <div className="truncate font-medium">{title}</div>
+      <div className="break-words font-medium">{title}</div>
       <div className="mt-0.5 flex items-center gap-1 opacity-80">
-        <Camera className="h-3 w-3" />
+        <Camera className="h-3 w-3 flex-none" />
         <span>{pictureCount}</span>
       </div>
+      {event.note_title && (
+        <div className="mt-0.5 flex min-w-0 items-start gap-1 opacity-80">
+          <NotebookPen className="mt-[1px] h-3 w-3 flex-none" />
+          <span className="min-w-0 break-words">{event.note_title}</span>
+        </div>
+      )}
     </Link>
   );
 }
