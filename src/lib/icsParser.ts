@@ -9,6 +9,8 @@
  */
 
 export interface IcsEvent {
+  /** Unique identifier from the ICS UID field. */
+  uid: string;
   /** Combined subject — "COURSE_CODE Course Name". */
   subject: string;
   /** Extracted course code (e.g. TDDD12). */
