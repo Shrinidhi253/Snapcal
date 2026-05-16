@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
+import { ArrowLeft, MoreHorizontal, Calendar, Clock, MapPin, Upload, Camera, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { extractImageTakenAt } from "@/lib/exifExtractor";
 import { formatTime } from "@/lib/weekCalendar";
 
 export const Route = createFileRoute("/events/$eventId")({
@@ -16,6 +18,50 @@ type LecturePhoto = { id: string; url: string; takenAt: string };
 function EventDetailPage() {
   const { eventId } = useParams({ from: "/events/$eventId" });
   const [lightbox, setLightbox] = useState<LecturePhoto | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const list = Array.from(files);
+    setUploading({ done: 0, total: list.length });
+    let failed = 0;
+    for (let i = 0; i < list.length; i++) {
+      const file = list[i];
+      try {
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const filename = `${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("lecture-photos")
+          .upload(filename, file, { contentType: file.type || "image/jpeg", upsert: false });
+        if (upErr) throw upErr;
+
+        let takenAt: Date | null = null;
+        try { takenAt = await extractImageTakenAt(file); } catch { takenAt = null; }
+
+        const { error: dbErr } = await supabase.from("images").insert({
+          filename,
+          original_filename: file.name,
+          taken_at: takenAt ? takenAt.toISOString() : null,
+          event_id: eventId,
+        });
+        if (dbErr) throw dbErr;
+      } catch (err) {
+        console.error("Upload failed for", file.name, err);
+        failed++;
+      } finally {
+        setUploading({ done: i + 1, total: list.length });
+      }
+    }
+    setUploading(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    const ok = list.length - failed;
+    if (failed === 0) toast.success(`${ok} photo${ok === 1 ? "" : "s"} uploaded.`);
+    else if (ok === 0) toast.error("Upload failed. Please try again.");
+    else toast.error(`${ok} uploaded, ${failed} failed.`);
+    queryClient.invalidateQueries({ queryKey: ["event-photos", eventId] });
+  };
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", eventId],
@@ -184,12 +230,32 @@ function EventDetailPage() {
         />
         <div className="bg-[#F6F6F8] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-1">
           <div className="mx-auto max-w-2xl">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.heic,.heif,image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
             <button
-              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-base font-semibold text-white shadow-[var(--shadow-button)] transition active:scale-[0.99]"
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!!uploading}
+              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-base font-semibold text-white shadow-[var(--shadow-button)] transition active:scale-[0.99] disabled:opacity-70"
               style={{ background: "var(--gradient-primary)" }}
             >
-              <Upload className="h-5 w-5" />
-              {photos.length === 0 ? "Upload First Photo" : "Upload Images for Lecture"}
+              {uploading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Uploading {uploading.done}/{uploading.total}…
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5" />
+                  {photos.length === 0 ? "Upload First Photo" : "Upload Images for Lecture"}
+                </>
+              )}
             </button>
           </div>
         </div>
