@@ -20,6 +20,7 @@ type UnmatchedImage = {
   taken_at: string | null;
   created_at: string;
   unmatched_reason: string | null;
+  url: string;
 };
 
 const REASON_COLORS: Record<string, string> = {
@@ -67,7 +68,16 @@ function UnmatchedPage() {
         .is("event_id", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as UnmatchedImage[];
+      const rows = data ?? [];
+      const withUrls = await Promise.all(
+        rows.map(async (img) => {
+          const { data: signed } = await supabase.storage
+            .from("lecture-photos")
+            .createSignedUrl(img.filename, 3600);
+          return { ...img, url: signed?.signedUrl ?? "" } as UnmatchedImage;
+        }),
+      );
+      return withUrls;
     },
   });
 
@@ -190,9 +200,6 @@ function UnmatchedPage() {
         {images.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
             {images.map((img) => {
-              const { data: pub } = supabase.storage
-                .from("lecture-photos")
-                .getPublicUrl(img.filename);
               const reason = getReasonLabel(img.unmatched_reason);
               const reasonClass = getReasonClass(img.unmatched_reason);
 
@@ -205,7 +212,7 @@ function UnmatchedPage() {
                   <Link to="/images/$imageId" params={{ imageId: img.id }} className="block">
                     <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
                       <img
-                        src={pub.publicUrl}
+                        src={img.url}
                         alt={img.original_filename}
                         className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                         loading="lazy"

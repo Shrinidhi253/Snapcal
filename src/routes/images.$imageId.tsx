@@ -30,9 +30,9 @@ function ImageDetailPage() {
       if (error) throw error;
       if (!img) return null;
 
-      const { data: pub } = supabase.storage
+      const { data: signed } = await supabase.storage
         .from("lecture-photos")
-        .getPublicUrl(img.filename);
+        .createSignedUrl(img.filename, 3600);
 
       let event: {
         id: string;
@@ -49,7 +49,7 @@ function ImageDetailPage() {
         event = ev ?? null;
       }
 
-      return { img, url: pub.publicUrl, event };
+      return { img, url: signed?.signedUrl ?? "", event };
     },
   });
 

@@ -93,10 +93,18 @@ export function PhotoUpload() {
     let matched = 0;
     let unmatchedThisBatch = 0;
 
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      setStatus({ kind: "error", message: "You must be signed in to upload." });
+      toast.error("You must be signed in to upload.");
+      return;
+    }
+
     const uploadOne = async (item: Selected) => {
       try {
         const ext = (item.file.name.split(".").pop() || "jpg").toLowerCase();
-        const filename = `${crypto.randomUUID()}.${ext}`;
+        const filename = `${userId}/${crypto.randomUUID()}.${ext}`;
 
         const { error: upErr } = await supabase.storage
           .from("lecture-photos")
