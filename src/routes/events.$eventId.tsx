@@ -114,6 +114,7 @@ function EventDetailPage() {
           });
         return {
           id: img.id,
+          filename: img.filename,
           url: pub.publicUrl,
           takenAt: img.taken_at
             ? formatTime(new Date(img.taken_at))
