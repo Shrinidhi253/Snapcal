@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          course_code: string | null
+          course_name: string | null
+          created_at: string
+          end_time: string
+          event_date: string
+          id: string
+          location: string | null
+          start_time: string
+          subject: string
+          uid: string
+        }
+        Insert: {
+          course_code?: string | null
+          course_name?: string | null
+          created_at?: string
+          end_time: string
+          event_date: string
+          id?: string
+          location?: string | null
+          start_time: string
+          subject: string
+          uid: string
+        }
+        Update: {
+          course_code?: string | null
+          course_name?: string | null
+          created_at?: string
+          end_time?: string
+          event_date?: string
+          id?: string
+          location?: string | null
+          start_time?: string
+          subject?: string
+          uid?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
