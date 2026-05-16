@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ImagesImageIdRouteImport } from './routes/images.$imageId'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 
 const CalendarRoute = CalendarRouteImport.update({
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImagesImageIdRoute = ImagesImageIdRouteImport.update({
+  id: '/images/$imageId',
+  path: '/images/$imageId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/events/$eventId',
   path: '/events/$eventId',
@@ -33,30 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/images/$imageId': typeof ImagesImageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/images/$imageId': typeof ImagesImageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/images/$imageId': typeof ImagesImageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar' | '/events/$eventId'
+  fullPaths: '/' | '/calendar' | '/events/$eventId' | '/images/$imageId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar' | '/events/$eventId'
-  id: '__root__' | '/' | '/calendar' | '/events/$eventId'
+  to: '/' | '/calendar' | '/events/$eventId' | '/images/$imageId'
+  id: '__root__' | '/' | '/calendar' | '/events/$eventId' | '/images/$imageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarRoute: typeof CalendarRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
+  ImagesImageIdRoute: typeof ImagesImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/images/$imageId': {
+      id: '/images/$imageId'
+      path: '/images/$imageId'
+      fullPath: '/images/$imageId'
+      preLoaderRoute: typeof ImagesImageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/$eventId': {
       id: '/events/$eventId'
       path: '/events/$eventId'
@@ -89,7 +106,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarRoute: CalendarRoute,
   EventsEventIdRoute: EventsEventIdRoute,
+  ImagesImageIdRoute: ImagesImageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
