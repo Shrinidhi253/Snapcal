@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Camera, ImageOff, RefreshCw, CalendarDays, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, ImageOff, RefreshCw, CalendarDays, Trash2, Loader2, CalendarPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
+import { EventAssignDialog } from "@/components/EventAssignDialog";
 
 export const Route = createFileRoute("/unmatched")({
   component: UnmatchedPage,
