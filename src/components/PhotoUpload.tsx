@@ -82,14 +82,15 @@ export function PhotoUpload() {
 
   const handleUpload = async () => {
     if (!selected.length) return;
-    setStatus({ kind: "uploading", done: 0, total: selected.length });
+    const total = selected.length;
+    setStatus({ kind: "uploading", done: 0, total });
 
     let done = 0;
     let failed = 0;
     let matched = 0;
     let unmatchedThisBatch = 0;
 
-    for (const item of selected) {
+    const uploadOne = async (item: Selected) => {
       try {
         const ext = (item.file.name.split(".").pop() || "jpg").toLowerCase();
         const filename = `${crypto.randomUUID()}.${ext}`;
@@ -109,8 +110,6 @@ export function PhotoUpload() {
           takenAt = null;
         }
 
-        // exifr parses EXIF datetime using the browser's local timezone,
-        // returning a Date that already represents the correct instant.
         const takenAtIso = takenAt ? takenAt.toISOString() : null;
 
         let matchedEventId: string | null = null;
@@ -120,7 +119,6 @@ export function PhotoUpload() {
           unmatchedReason = "Could not determine image timestamp";
           console.log(`${filename} could not be matched because of null taken_at`);
         } else {
-          // First check for multiple matching events
           const { data: countData, error: countErr } = await supabase
             .from("events")
             .select("id", { count: "exact" })
@@ -157,23 +155,24 @@ export function PhotoUpload() {
         failed++;
       } finally {
         done++;
-        setStatus({ kind: "uploading", done, total: selected.length });
+        setStatus({ kind: "uploading", done, total });
       }
-    }
+    };
 
-    if (failed === selected.length) {
+    await Promise.all(selected.map(uploadOne));
+
+    if (failed === total) {
       setStatus({ kind: "error", message: "Upload failed. Please try again." });
       toast.error("Upload failed. Please try again.");
       return;
     }
 
-    // Sweep any historical unmatched images too (silent — only logged).
     const sweep = await assignUnmatchedImages();
     console.log(
       `Sweep of prior unmatched: ${sweep.assigned} assigned, ${sweep.unmatched} unmatched`,
     );
 
-    const successCount = selected.length - failed;
+    const successCount = total - failed;
     const assignSummary = ` (${matched} matched to events, ${unmatchedThisBatch} unmatched)`;
     const message =
       failed === 0
