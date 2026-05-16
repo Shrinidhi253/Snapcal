@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnmatchedRouteImport } from './routes/unmatched'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ImagesImageIdRouteImport } from './routes/images.$imageId'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 
+const UnmatchedRoute = UnmatchedRouteImport.update({
+  id: '/unmatched',
+  path: '/unmatched',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -38,12 +44,14 @@ const EventsEventIdRoute = EventsEventIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
+  '/unmatched': typeof UnmatchedRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/images/$imageId': typeof ImagesImageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
+  '/unmatched': typeof UnmatchedRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/images/$imageId': typeof ImagesImageIdRoute
 }
@@ -51,26 +59,46 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
+  '/unmatched': typeof UnmatchedRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/images/$imageId': typeof ImagesImageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar' | '/events/$eventId' | '/images/$imageId'
+  fullPaths:
+    | '/'
+    | '/calendar'
+    | '/unmatched'
+    | '/events/$eventId'
+    | '/images/$imageId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar' | '/events/$eventId' | '/images/$imageId'
-  id: '__root__' | '/' | '/calendar' | '/events/$eventId' | '/images/$imageId'
+  to: '/' | '/calendar' | '/unmatched' | '/events/$eventId' | '/images/$imageId'
+  id:
+    | '__root__'
+    | '/'
+    | '/calendar'
+    | '/unmatched'
+    | '/events/$eventId'
+    | '/images/$imageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarRoute: typeof CalendarRoute
+  UnmatchedRoute: typeof UnmatchedRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
   ImagesImageIdRoute: typeof ImagesImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unmatched': {
+      id: '/unmatched'
+      path: '/unmatched'
+      fullPath: '/unmatched'
+      preLoaderRoute: typeof UnmatchedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calendar': {
       id: '/calendar'
       path: '/calendar'
@@ -105,9 +133,20 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarRoute: CalendarRoute,
+  UnmatchedRoute: UnmatchedRoute,
   EventsEventIdRoute: EventsEventIdRoute,
   ImagesImageIdRoute: ImagesImageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
