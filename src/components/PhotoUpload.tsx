@@ -185,7 +185,7 @@ export function PhotoUpload() {
             isUploading && "opacity-60 cursor-not-allowed",
           )}
         >
-          <Upload className="h-5 w-5" />
+          <Upload className="h-5 w-5 text-slate-800" />
           Upload
         </button>
 
