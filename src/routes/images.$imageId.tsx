@@ -144,13 +144,33 @@ function ImageDetailPage() {
               </p>
             </div>
 
-            <div className="mt-5 flex justify-center">
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => setAssignOpen(true)}
                 className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-4 py-2 transition"
               >
                 <CalendarPlus className="h-4 w-4" />
                 {data.event ? "Change event" : "Assign event"}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!data?.img) return;
+                  if (!confirm("Delete this photo? This cannot be undone.")) return;
+                  setDeleting(true);
+                  try {
+                    await deleteImage(data.img.id, data.img.filename);
+                    toast.success("Photo deleted.");
+                    navigate({ to: "/calendar" });
+                  } catch {
+                    toast.error("Failed to delete photo.");
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 rounded-full bg-red-500/15 hover:bg-red-500/30 text-red-200 text-sm font-medium px-4 py-2 transition disabled:opacity-60"
+              >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete photo
               </button>
             </div>
           </>
