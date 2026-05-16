@@ -271,7 +271,7 @@ export function PhotoUpload() {
               className={cn(
                 "mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 px-5 text-sm font-semibold transition-all duration-300 active:scale-[0.98] disabled:active:scale-100",
                 !isUploading
-                  ? "bg-[var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-button)] hover:-translate-y-0.5"
+                  ? "bg-[var(--gradient-primary)] text-slate-800 shadow-[var(--shadow-button)] hover:-translate-y-0.5"
                   : "bg-secondary text-muted-foreground cursor-not-allowed",
               )}
             >
@@ -282,7 +282,7 @@ export function PhotoUpload() {
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4" />
+                  <Upload className="h-4 w-4 text-slate-800" />
                   Upload Images
                 </>
               )}
