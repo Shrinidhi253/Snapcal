@@ -21,7 +21,22 @@ function EventDetailPage() {
   const [lightbox, setLightbox] = useState<LecturePhoto | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  const handleDeletePhoto = async (id: string, filename: string) => {
+    setDeletingPhotoId(id);
+    try {
+      await deleteImage(id, filename);
+      queryClient.invalidateQueries({ queryKey: ["event-photos", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["event-photo-counts"] });
+      toast.success("Photo deleted.");
+    } catch {
+      toast.error("Failed to delete photo.");
+    } finally {
+      setDeletingPhotoId(null);
+    }
+  };
 
   const handleFilesSelected = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
