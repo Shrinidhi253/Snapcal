@@ -1,26 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Convert a `taken_at` timestamp string (stored as if UTC but representing
- * the local wall-clock time from EXIF) into an ISO string that matches the
- * UTC start/end_time of events.
- *
- * Events in the DB are stored as real UTC, while EXIF datetimes have no
- * timezone — `extractImageTakenAt` returns a Date whose UTC components
- * equal the wall-clock time. We reinterpret those components as local time
- * before converting back to UTC.
+ * The `taken_at` column already stores the correct UTC instant
+ * (exifr parses EXIF datetimes in the browser's local timezone, so the
+ * resulting Date — and its toISOString() — is already the right UTC moment).
+ * No reinterpretation needed; just normalize through Date for safety.
  */
 function takenAtToQueryIso(takenAtRaw: string): string {
-  const d = new Date(takenAtRaw);
-  const local = new Date(
-    d.getUTCFullYear(),
-    d.getUTCMonth(),
-    d.getUTCDate(),
-    d.getUTCHours(),
-    d.getUTCMinutes(),
-    d.getUTCSeconds(),
-  );
-  return local.toISOString();
+  return new Date(takenAtRaw).toISOString();
 }
 
 /**
