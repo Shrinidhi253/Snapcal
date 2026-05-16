@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ArrowLeft, Camera, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, Camera, NotebookPen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import {
