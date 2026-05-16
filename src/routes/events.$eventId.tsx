@@ -18,6 +18,50 @@ type LecturePhoto = { id: string; url: string; takenAt: string };
 function EventDetailPage() {
   const { eventId } = useParams({ from: "/events/$eventId" });
   const [lightbox, setLightbox] = useState<LecturePhoto | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const list = Array.from(files);
+    setUploading({ done: 0, total: list.length });
+    let failed = 0;
+    for (let i = 0; i < list.length; i++) {
+      const file = list[i];
+      try {
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const filename = `${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("lecture-photos")
+          .upload(filename, file, { contentType: file.type || "image/jpeg", upsert: false });
+        if (upErr) throw upErr;
+
+        let takenAt: Date | null = null;
+        try { takenAt = await extractImageTakenAt(file); } catch { takenAt = null; }
+
+        const { error: dbErr } = await supabase.from("images").insert({
+          filename,
+          original_filename: file.name,
+          taken_at: takenAt ? takenAt.toISOString() : null,
+          event_id: eventId,
+        });
+        if (dbErr) throw dbErr;
+      } catch (err) {
+        console.error("Upload failed for", file.name, err);
+        failed++;
+      } finally {
+        setUploading({ done: i + 1, total: list.length });
+      }
+    }
+    setUploading(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    const ok = list.length - failed;
+    if (failed === 0) toast.success(`${ok} photo${ok === 1 ? "" : "s"} uploaded.`);
+    else if (ok === 0) toast.error("Upload failed. Please try again.");
+    else toast.error(`${ok} uploaded, ${failed} failed.`);
+    queryClient.invalidateQueries({ queryKey: ["event-photos", eventId] });
+  };
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", eventId],
