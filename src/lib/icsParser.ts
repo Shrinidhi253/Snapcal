@@ -196,6 +196,7 @@ export class IcsParser {
     const subject = courseCode ? `${courseCode} ${courseName}` : courseName;
 
     return {
+      uid: (fields.UID ?? `${dtStart}-${dtEnd}-${subject}`).trim(),
       subject,
       courseCode,
       courseName,
