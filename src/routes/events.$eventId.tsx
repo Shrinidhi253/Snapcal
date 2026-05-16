@@ -214,6 +214,8 @@ function EventDetailPage() {
                   <img
                     src={p.url}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                   />
                   <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
