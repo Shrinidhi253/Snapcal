@@ -152,9 +152,10 @@ function EventDetailPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {photos.map((p) => (
-                <button
+                <Link
                   key={p.id}
-                  onClick={() => setLightbox(p)}
+                  to="/images/$imageId"
+                  params={{ imageId: p.id }}
                   className="group relative aspect-square overflow-hidden rounded-2xl bg-white shadow-[0_4px_16px_-8px_oklch(0.18_0.03_280/0.18)] transition active:scale-[0.98]"
                 >
                   <img
@@ -165,7 +166,7 @@ function EventDetailPage() {
                   <span className="absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
                     {p.takenAt}
                   </span>
-                </button>
+                </Link>
               ))}
             </div>
           )}
