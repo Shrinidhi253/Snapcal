@@ -28,6 +28,7 @@ function EventDetailPage() {
   const queryClient = useQueryClient();
   const [editingNote, setEditingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
+  const [noteTitleDraft, setNoteTitleDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
   const handleDeletePhoto = async (id: string, filename: string) => {
