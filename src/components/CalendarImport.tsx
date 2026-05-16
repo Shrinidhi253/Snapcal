@@ -116,7 +116,7 @@ export function CalendarImport() {
             }}
             className={cn(
               "group relative flex w-full items-center justify-center gap-2 rounded-2xl py-4 px-5 text-sm font-semibold text-primary-foreground transition-all duration-300 active:scale-[0.98]",
-              "bg-[var(--gradient-primary)] shadow-[var(--shadow-button)] hover:shadow-[0_14px_30px_-10px_oklch(0.58_0.22_285/0.7)] hover:-translate-y-0.5",
+              "bg-[var(--gradient-primary)] shadow-[var(--shadow-button)] hover:shadow-[0_14px_30px_-10px_oklch(0.58_0.22_285/0.7)] hover:-translate-y-0.5 text-slate-800",
               dragOver && "ring-4 ring-primary/30 -translate-y-0.5",
             )}
           >
