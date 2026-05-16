@@ -55,6 +55,7 @@ function UnmatchedPage() {
   const queryClient = useQueryClient();
   const [retrying, setRetrying] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [assignId, setAssignId] = useState<string | null>(null);
 
   const { data: images = [], isLoading } = useQuery<UnmatchedImage[]>({
     queryKey: ["unmatched-images"],
