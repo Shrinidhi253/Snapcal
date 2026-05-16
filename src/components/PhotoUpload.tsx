@@ -99,13 +99,16 @@ export function PhotoUpload() {
           takenAt = null;
         }
 
+        const takenAtIso = takenAt ? takenAt.toISOString() : null;
         const { error: dbErr } = await supabase.from("images").insert({
           filename,
           original_filename: item.file.name,
-          taken_at: takenAt ? takenAt.toISOString() : null,
+          taken_at: takenAtIso,
           event_id: null,
         });
         if (dbErr) throw dbErr;
+
+        console.log("Image saved:", { filename, taken_at: takenAtIso });
       } catch (err) {
         console.error("Upload failed for", item.file.name, err);
         failed++;
@@ -166,13 +169,7 @@ export function PhotoUpload() {
         {/* Upload trigger */}
         <button
           type="button"
-          onClick={() => {
-            if (selected.length > 0 && !isUploading) {
-              handleUpload();
-            } else {
-              inputRef.current?.click();
-            }
-          }}
+          onClick={() => inputRef.current?.click()}
           onDragOver={(e) => {
             e.preventDefault();
             setDragOver(true);
@@ -195,11 +192,6 @@ export function PhotoUpload() {
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
               Uploading {status.kind === "uploading" ? `${status.done}/${status.total}` : ""}…
-            </>
-          ) : selected.length > 0 ? (
-            <>
-              <Upload className="h-5 w-5 shrink-0 text-slate-800" />
-              Upload {selected.length} image{selected.length === 1 ? "" : "s"}
             </>
           ) : (
             <>
@@ -281,9 +273,9 @@ export function PhotoUpload() {
                   Uploading {status.done}/{status.total}…
                 </>
               ) : (
-                <>
+              <>
                   <Upload className="h-4 w-4 text-slate-800" />
-                  Upload Images
+                  Upload {selected.length} image{selected.length === 1 ? "" : "s"}
                 </>
               )}
             </button>
