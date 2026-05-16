@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
 import { assignUnmatchedImages } from "@/lib/eventMatcher";
+import { deleteImage } from "@/lib/imageDelete";
 import { EventAssignDialog } from "@/components/EventAssignDialog";
 
 export const Route = createFileRoute("/unmatched")({
