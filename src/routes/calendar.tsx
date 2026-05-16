@@ -236,23 +236,23 @@ function EventBlock({ event, pictureCount }: { event: EventRow; pictureCount: nu
       to="/events/$eventId"
       params={{ eventId: event.id }}
       className={cn(
-        "absolute left-1 right-1 rounded-md border px-1.5 py-1 text-[11px] leading-tight overflow-hidden shadow-sm hover:shadow-md transition-shadow",
+        "absolute left-1 right-1 rounded-md border px-1.5 py-1 text-[11px] leading-tight shadow-sm hover:shadow-md hover:z-10 transition-shadow",
         colorClasses,
       )}
-      style={{ top, height }}
+      style={{ top, minHeight: height }}
     >
       <div className="font-semibold">
         {formatTime(start)}–{formatTime(end)}
       </div>
-      <div className="truncate font-medium">{title}</div>
+      <div className="break-words font-medium">{title}</div>
       <div className="mt-0.5 flex items-center gap-1 opacity-80">
-        <Camera className="h-3 w-3" />
+        <Camera className="h-3 w-3 flex-none" />
         <span>{pictureCount}</span>
       </div>
       {event.note_title && (
-        <div className="mt-0.5 flex min-w-0 items-center gap-1 opacity-80">
-          <NotebookPen className="h-3 w-3 flex-none" />
-          <span className="truncate">{event.note_title}</span>
+        <div className="mt-0.5 flex min-w-0 items-start gap-1 opacity-80">
+          <NotebookPen className="mt-[1px] h-3 w-3 flex-none" />
+          <span className="min-w-0 break-words">{event.note_title}</span>
         </div>
       )}
     </Link>
