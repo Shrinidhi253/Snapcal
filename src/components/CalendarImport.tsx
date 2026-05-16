@@ -1,40 +1,45 @@
 import { useRef, useState } from "react";
-import { CalendarPlus, FileSpreadsheet, Upload, X, Info, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { toast } from "sonner";
+import { CalendarPlus, Upload, CalendarDays, CheckCircle2, AlertCircle, FileText, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
-function countCsvRows(text: string): number {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  return Math.max(0, lines.length - 1); // minus header
+type Status =
+  | { kind: "idle" }
+  | { kind: "error"; message: string }
+  | { kind: "success"; message: string };
+
+function countIcsEvents(text: string): number {
+  const matches = text.match(/BEGIN:VEVENT/gi);
+  return matches ? matches.length : 0;
 }
 
 export function CalendarImport() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState("");
   const [eventCount, setEventCount] = useState(0);
   const [uploading, setUploading] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  const handleFile = async (f: File) => {
-    if (!f.name.toLowerCase().endsWith(".csv")) {
-      toast.error("Please select a .csv file exported from TimeEdit.");
-      return;
-    }
-    const text = await f.text();
-    setFile(f);
-    setContent(text);
-    setEventCount(countCsvRows(text));
-  };
+  const [dragOver, setDragOver] = useState(false);
+  const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   const reset = () => {
     setFile(null);
     setContent("");
     setEventCount(0);
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const acceptFile = async (f: File) => {
+    if (!f.name.toLowerCase().endsWith(".ics")) {
+      setStatus({ kind: "error", message: "Please upload a valid .ics file." });
+      reset();
+      return;
+    }
+    const text = await f.text();
+    setFile(f);
+    setContent(text);
+    setEventCount(countIcsEvents(text));
+    setStatus({ kind: "idle" });
   };
 
   const handleUpload = async () => {
@@ -47,97 +52,140 @@ export function CalendarImport() {
     });
     setUploading(false);
     if (error) {
-      toast.error("Upload failed: " + error.message);
+      setStatus({ kind: "error", message: "Upload failed. Please try again." });
       return;
     }
-    toast.success(`Calendar "${file.name}" saved with ${eventCount} events.`);
+    setStatus({ kind: "success", message: "Calendar uploaded successfully." });
     reset();
-    setOpen(false);
   };
 
-  if (!open) {
-    return (
-      <Button size="lg" onClick={() => setOpen(true)} className="gap-2">
-        <CalendarPlus className="h-5 w-5" />
-        Add calendar
-      </Button>
-    );
-  }
-
   return (
-    <Card className="w-full max-w-xl">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarPlus className="h-5 w-5" />
-              Import your TimeEdit schedule
-            </CardTitle>
-            <CardDescription>
-              Upload your class schedule so Snapcal can group your photos by lesson.
-            </CardDescription>
+    <div className="w-full max-w-md mx-auto animate-fade-in">
+      <div className="rounded-3xl bg-card border border-border/60 p-6 sm:p-7 shadow-[var(--shadow-card)]">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent">
+            <CalendarDays className="h-5 w-5 text-primary" />
           </div>
-          <Button variant="ghost" size="icon" onClick={() => { reset(); setOpen(false); }}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              Import TimeEdit Calendar
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              Upload your TimeEdit .ics file to automatically organize your class photos.
+            </p>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Export your schedule as a .csv file</AlertTitle>
-          <AlertDescription>
-            In TimeEdit, open your schedule and choose <strong>Subscribe / Export</strong>, then
-            pick the <strong>CSV</strong> format. Save the file to your device and upload it below.
-          </AlertDescription>
-        </Alert>
 
+        {/* Info box */}
+        <div className="flex gap-3 rounded-2xl bg-accent/60 border border-accent p-4 mb-5">
+          <Upload className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+          <p className="text-xs leading-relaxed text-accent-foreground">
+            Download your schedule from TimeEdit as an{" "}
+            <span className="font-medium">.ics</span> calendar file before uploading.
+          </p>
+        </div>
+
+        {/* Hidden input */}
         <input
           ref={inputRef}
           type="file"
-          accept=".csv,text/csv"
+          accept=".ics,text/calendar"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            if (f) handleFile(f);
+            if (f) acceptFile(f);
           }}
         />
 
+        {/* File area */}
         {!file ? (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 p-8 text-center transition-colors hover:bg-muted/60"
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f) acceptFile(f);
+            }}
+            className={cn(
+              "group relative flex w-full items-center justify-center gap-2 rounded-2xl py-4 px-5 text-sm font-semibold text-primary-foreground transition-all duration-300 active:scale-[0.98]",
+              "bg-[var(--gradient-primary)] shadow-[var(--shadow-button)] hover:shadow-[0_14px_30px_-10px_oklch(0.58_0.22_285/0.7)] hover:-translate-y-0.5 text-slate-800",
+              dragOver && "ring-4 ring-primary/30 -translate-y-0.5",
+            )}
           >
-            <FileSpreadsheet className="h-8 w-8 text-muted-foreground" />
-            <span className="font-medium">Choose a .csv file</span>
-            <span className="text-sm text-muted-foreground">Only .csv files are accepted</span>
+            <CalendarPlus className="h-5 w-5" />
+            Add Calendar
           </button>
         ) : (
-          <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
-            <CheckCircle2 className="h-5 w-5 text-primary" />
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/60 p-3.5 animate-scale-in">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-card border border-border">
+              <FileText className="h-4 w-4 text-primary" />
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate font-medium">{file.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {eventCount} event{eventCount === 1 ? "" : "s"} detected · {(file.size / 1024).toFixed(1)} KB
+              <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {eventCount} event{eventCount === 1 ? "" : "s"} · {(file.size / 1024).toFixed(1)} KB
               </p>
             </div>
-            <Button variant="ghost" size="sm" onClick={reset}>
-              Change
-            </Button>
+            <button
+              type="button"
+              onClick={reset}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+              aria-label="Remove file"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>
-            Cancel
-          </Button>
-          <Button onClick={handleUpload} disabled={!file || uploading} className="gap-2">
-            <Upload className="h-4 w-4" />
-            {uploading ? "Uploading..." : "Upload"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        {/* Upload button */}
+        <button
+          type="button"
+          onClick={handleUpload}
+          disabled={!file || uploading}
+          className={cn(
+            "mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 px-5 text-sm font-semibold transition-all duration-300 active:scale-[0.98] disabled:active:scale-100",
+            file && !uploading
+              ? "bg-[var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-button)] hover:-translate-y-0.5 text-slate-800"
+              : "bg-secondary text-muted-foreground cursor-not-allowed",
+          )}
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Uploading…
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4" />
+              Upload Calendar
+            </>
+          )}
+        </button>
+
+        {/* Status */}
+        {status.kind === "error" && (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-destructive/20 bg-[var(--destructive-soft)] px-4 py-3 animate-fade-in">
+            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+            <p className="text-sm font-medium text-destructive">{status.message}</p>
+          </div>
+        )}
+        {status.kind === "success" && (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[color:var(--success)]/20 bg-[var(--success-soft)] px-4 py-3 animate-fade-in">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-[color:var(--success)]" />
+            <p className="text-sm font-medium text-[color:var(--success-foreground)]">
+              {status.message}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
