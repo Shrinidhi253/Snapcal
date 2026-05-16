@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { CalendarPlus, Upload, CalendarDays, CheckCircle2, AlertCircle, FileText, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { IcsParser, InvalidIcsFileError } from "@/lib/icsParser";
 
 type Status =
   | { kind: "idle" }
@@ -45,17 +47,56 @@ export function CalendarImport() {
   const handleUpload = async () => {
     if (!file) return;
     setUploading(true);
-    const { error } = await supabase.from("calendars").insert({
-      name: file.name,
-      csv_content: content,
-      event_count: eventCount,
-    });
-    setUploading(false);
-    if (error) {
-      setStatus({ kind: "error", message: "Upload failed. Please try again." });
+
+    let parsed;
+    try {
+      parsed = IcsParser.parse(content);
+    } catch (err) {
+      setUploading(false);
+      const message =
+        err instanceof InvalidIcsFileError
+          ? err.message
+          : "Failed to parse .ics file.";
+      setStatus({ kind: "error", message });
+      toast.error(message);
       return;
     }
-    setStatus({ kind: "success", message: "Calendar uploaded successfully." });
+
+    if (parsed.length === 0) {
+      setUploading(false);
+      const message = "No events found in the .ics file.";
+      setStatus({ kind: "error", message });
+      toast.error(message);
+      return;
+    }
+
+    const rows = parsed.map((e) => ({
+      uid: e.uid,
+      subject: e.subject,
+      location: e.location || null,
+      start_time: e.startTime.toISOString(),
+      end_time: e.endTime.toISOString(),
+      event_date: `${e.date.getFullYear()}-${String(e.date.getMonth() + 1).padStart(2, "0")}-${String(e.date.getDate()).padStart(2, "0")}`,
+      course_code: e.courseCode || null,
+      course_name: e.courseName || null,
+    }));
+
+    const { error, count } = await supabase
+      .from("events")
+      .upsert(rows, { onConflict: "uid", count: "exact" });
+
+    setUploading(false);
+
+    if (error) {
+      setStatus({ kind: "error", message: "Upload failed. Please try again." });
+      toast.error("Upload failed. Please try again.");
+      return;
+    }
+
+    const n = count ?? rows.length;
+    const message = `${n} event${n === 1 ? "" : "s"} have been imported.`;
+    setStatus({ kind: "success", message });
+    toast.success(message);
     reset();
   };
 
