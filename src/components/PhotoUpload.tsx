@@ -166,7 +166,13 @@ export function PhotoUpload() {
         {/* Upload trigger */}
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => {
+            if (selected.length > 0 && !isUploading) {
+              handleUpload();
+            } else {
+              inputRef.current?.click();
+            }
+          }}
           onDragOver={(e) => {
             e.preventDefault();
             setDragOver(true);
@@ -185,9 +191,33 @@ export function PhotoUpload() {
             isUploading && "opacity-60 cursor-not-allowed",
           )}
         >
-          <Upload className="h-5 w-5 text-slate-800" />
-          Upload
+          {isUploading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Uploading {status.kind === "uploading" ? `${status.done}/${status.total}` : ""}…
+            </>
+          ) : selected.length > 0 ? (
+            <>
+              <Upload className="h-5 w-5 text-slate-800" />
+              Upload {selected.length} image{selected.length === 1 ? "" : "s"}
+            </>
+          ) : (
+            <>
+              <Upload className="h-5 w-5 text-slate-800" />
+              Select photos
+            </>
+          )}
         </button>
+
+        {selected.length > 0 && !isUploading && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="mt-2 w-full text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            + Add more photos
+          </button>
+        )}
 
         {/* Preview grid */}
         {selected.length > 0 && (
