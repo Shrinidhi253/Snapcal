@@ -154,6 +154,8 @@ function EventDetailPage() {
     }
   };
 
+  const title = event?.course_name || event?.subject || "Lecture";
+
   const start = event ? new Date(event.start_time) : null;
   const end = event ? new Date(event.end_time) : null;
   const durationMin = start && end ? Math.round((end.getTime() - start.getTime()) / 60000) : 0;
