@@ -151,22 +151,20 @@ Images that cannot automatically be assigned are isolated for manual review and 
 
 # Technical Highlights
 
-SnapCal combines:
-- calendar synchronization
-- timestamp processing
-- cloud image storage
-- event-based organization
-- responsive scheduling interfaces
+## Event matching algorithm
 
-into a single workflow designed specifically for students.
+<img width="407" height="409" alt="image" src="https://github.com/user-attachments/assets/dc8aa0c6-a707-427b-8109-a69fb7bcc8f4" /><br>
+- The main algorithm extracts EXIF metadata from the uploaded image to get the actual time the picture was taken
+- It then compares this time to the lecture schedule and finds the lecture during which this image was taken
 
-Key technical features include:
-- automatic image-to-event matching
-- Supabase storage integration
-- database-driven event organization
-- responsive calendar rendering
-- dynamic lecture-based image retrieval
+## Alternative event matching algorithm
+- In case the EXIF metadata does not match any calendar events because it has been overwritten or stripped off, then we try parsing the filename using regex to identify the timestamp
+- In the image above, the image name `IMG_20260516_124844` says the timestamp of when it was taken, which is 16th May 2026, 12:48:44
 
+> [!IMPORTANT]
+Different applications have different conventions for naming the photos. iPhone, for example, does not save the image using the image's timestamp.
+So this is not very reliable, but it is an extra attempt to try matching.
+In case both algorithms fail or have matched incorrectly, the users will then have to manually organise their lecture photos. 
 ---
 
 # Tech Stack
