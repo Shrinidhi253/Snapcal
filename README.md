@@ -25,8 +25,6 @@
 
 SnapCal is fully deployed and accessible directly from the browser.
 
-Simply open the application link and start using it — no installation required.
-
 https://snapcalgu.lovable.app
 
 # SnapCal 
