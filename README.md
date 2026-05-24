@@ -1,3 +1,26 @@
+- [Try SnapCal](#try-snapcal)
+- [The Problem](#the-problem)
+- [The Solution](#the-solution)
+- [Features](#features)
+  - [TimeEdit Calendar Import](#timeedit-calendar-import)
+  - [Smart Photo Matching](#smart-photo-matching)
+  - [Unmatched Image Detection](#unmatched-image-detection)
+  - [Lecture Notes](#lecture-notes)
+  - [Lecture-Centered Workflow](#lecture-centered-workflow)
+- [Demo](#demo)
+  - [Sign In](#sign-in)
+  - [Calendar Import](#calendar-import)
+  - [Uploaded Calendars](#uploaded-calendars)
+  - [Weekly Calendar View](#weekly-calendar-view)
+  - [Lecture Details Page](#lecture-details-page)
+  - [Lecture Notes](#lecture-notes-1)
+  - [Unmatched Images](#unmatched-images)
+- [Technical Highlights](#technical-highlights)
+- [Tech Stack](#tech-stack)
+  - [Frontend](#frontend)
+  - [Backend & Infrastructure](#backend--infrastructure)
+  - [Integrations](#integrations)
+
 # Try SnapCal
 
 SnapCal is fully deployed and accessible directly from the browser.
@@ -8,11 +31,12 @@ https://snapcalgu.lovable.app
 
 # SnapCal 
 
-> Your schedule, your snapshots.
+<i>Your schedule, your snapshots.</i>
 
-SnapCal is a smart student productivity platform that automatically organizes lecture photos into the correct classes using calendar schedules and timestamps.
+SnapCal is a web app built during the **Lovable Hackathon** organised by **SKIP GU** to help students reduce gallery chaos by connecting lecture schedules with uploaded photos of notes or lecture slides and boards.
 
-SnapCal is a web app built during the Lovable Hackathon to help students reduce gallery chaos by connecting lecture schedules with uploaded photos of notes or lecture slides and boards.
+It is a smart student productivity platform that automatically organizes lecture photos into the correct classes using calendar schedules and timestamps.
+
 ---
 
 # The Problem
